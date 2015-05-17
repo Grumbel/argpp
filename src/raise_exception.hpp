@@ -1,6 +1,6 @@
 /*
 **  Xbox360 USB Gamepad Userspace Driver
-**  Copyright (C) 2008 Ingo Ruhnke <grumbel@gmail.com>
+**  Copyright (C) 2011 Ingo Ruhnke <grumbel@gmx.de>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -16,26 +16,16 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef HEADER_UTIL_PRETTY_PRINTER_HPP
-#define HEADER_UTIL_PRETTY_PRINTER_HPP
+#ifndef HEADER_XBOXDRV_RAISE_EXCEPTION_HPP
+#define HEADER_XBOXDRV_RAISE_EXCEPTION_HPP
 
-#include <string>
+#include "log.hpp"
 
-class PrettyPrinter
-{
-private:
-  int terminal_width;
-
-public:
-  PrettyPrinter(int terminal_width);
-
-  void print(const std::string& str);
-  void print(const std::string& indent_str, const std::string& left, const std::string& str);
-
-private:
-  PrettyPrinter(const PrettyPrinter&);
-  PrettyPrinter& operator=(const PrettyPrinter&);
-};
+#define raise_exception(type, expr) do {  \
+  std::ostringstream b42465a70169; \
+  b42465a70169 << log_pretty_print(__PRETTY_FUNCTION__) << ": " << expr; \
+  throw type(b42465a70169.str()); \
+} while(false)
 
 #endif
 

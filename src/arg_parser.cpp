@@ -1,6 +1,6 @@
 /*
 **  Xbox360 USB Gamepad Userspace Driver
-**  Copyright (C) 2008 Ingo Ruhnke <grumbel@gmail.com>
+**  Copyright (C) 2008 Ingo Ruhnke <grumbel@gmx.de>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -18,12 +18,11 @@
 
 #include "arg_parser.hpp"
 
-#include <assert.h>
 #include <stdio.h>
 #include <ostream>
 
-#include "util/terminal.hpp"
-#include "util/pretty_printer.hpp"
+#include "helper.hpp"
+#include "pretty_printer.hpp"
 
 ArgParser::ArgParser() :
   programm(),
@@ -80,13 +79,13 @@ ArgParser::parse_args(int argc, char** argv)
           {
             if (option->argument.empty())
             {
-              parsed_options.push_back(ParsedOption(option->key, "--" + long_opt, ""));
+              parsed_options.push_back(ParsedOption(option->key, long_opt, ""));
             }
             else
             {
               if (pos != std::string::npos)
               {
-                parsed_options.push_back(ParsedOption(option->key, "--" + long_opt, long_opt_arg));
+                parsed_options.push_back(ParsedOption(option->key, long_opt, long_opt_arg));
               }
               else
               {
@@ -96,7 +95,7 @@ ArgParser::parse_args(int argc, char** argv)
                 }
                 else
                 {
-                  parsed_options.push_back(ParsedOption(option->key, "--" + long_opt, argv[i + 1]));
+                  parsed_options.push_back(ParsedOption(option->key, long_opt, argv[i + 1]));
                   ++i;
                 }
               }
@@ -125,25 +124,25 @@ ArgParser::parse_args(int argc, char** argv)
             {
               if (option->argument.empty())
               {
-                parsed_options.push_back(ParsedOption(option->key, argv[i], ""));
+                parsed_options.push_back(ParsedOption(option->key, std::string(1, *p), ""));
               }
               else
               {
                 if (i == argc - 1 || *(p+1) != '\0')
                 {
                   // No more arguments
-                  throw std::runtime_error("option requires an argument -- " + std::string(argv[i]));
+                  throw std::runtime_error("option requires an argument -- " + std::string(1, *p));
                 }
                 else
                 {
-                  parsed_options.push_back(ParsedOption(option->key, argv[i], argv[i + 1]));
+                  parsed_options.push_back(ParsedOption(option->key, std::string(1, *p), argv[i + 1]));
                   ++i;
                 }
               }
             }
             else
             {
-              throw std::runtime_error("invalid option -- " + std::string(argv[i]));
+              throw std::runtime_error("invalid option -- " + std::string(1, *p));
             }
             ++p;
           }
@@ -200,10 +199,10 @@ ArgParser::print_help(std::ostream& out) const
         width += 2; // "-a"
 
       if (!i->long_option.empty())
-        width += static_cast<int>(i->long_option.size()) + 2; // "--foobar"
+        width += i->long_option.size() + 2; // "--foobar"
 
       if (!i->argument.empty())
-        width += static_cast<int>(i->argument.size()) + 1;
+        width += i->argument.size() + 1;
 
       column_width = std::max(column_width, width);
     }
