@@ -66,6 +66,11 @@ public:
                         std::string_view argument,
                         std::string_view help,
                         bool visible = true);
+  ArgParser& add_option(char short_option,
+                        std::string_view long_option,
+                        std::string_view argument,
+                        std::string_view help,
+                        bool visible = true);
 
   ParsedOptions parse_args(int argc, char** argv);
   void print_help(std::ostream& out) const;

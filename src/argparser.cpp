@@ -344,6 +344,16 @@ ArgParser::add_text(const std::string& text)
 }
 
 ArgParser&
+ArgParser::add_option(char short_option,
+                      std::string_view long_option,
+                      std::string_view argument,
+                      std::string_view help,
+                      bool visible)
+{
+  return add_option(short_option, short_option, long_option, argument, help, visible);
+}
+
+ArgParser&
 ArgParser::add_option(int key,
                       char short_option,
                       std::string_view long_option,
