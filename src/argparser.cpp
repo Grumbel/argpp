@@ -184,7 +184,7 @@ ArgParser::lookup_short_option(char short_option) const
 }
 
 Option const*
-ArgParser::lookup_long_option(const std::string& long_option) const
+ArgParser::lookup_long_option(std::string_view long_option) const
 {
   for(auto const& opt : m_options)
   {
@@ -293,7 +293,7 @@ ArgParser::print_help(std::ostream& out) const
 }
 
 ArgParser&
-ArgParser::add_usage(const std::string& usage)
+ArgParser::add_usage(std::string_view usage)
 {
   Option option;
 
@@ -307,7 +307,7 @@ ArgParser::add_usage(const std::string& usage)
 }
 
 ArgParser&
-ArgParser::add_pseudo(const std::string& left, const std::string& doc)
+ArgParser::add_pseudo(std::string_view left, std::string_view doc)
 {
   Option option;
 
@@ -346,9 +346,9 @@ ArgParser::add_text(const std::string& text)
 ArgParser&
 ArgParser::add_option(int key,
                       char short_option,
-                      const std::string& long_option,
-                      const std::string& argument,
-                      const std::string& help,
+                      std::string_view long_option,
+                      std::string_view argument,
+                      std::string_view help,
                       bool visible)
 {
   assert(short_option || (!short_option && !long_option.empty()));

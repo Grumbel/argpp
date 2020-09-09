@@ -55,29 +55,29 @@ class ArgParser
 public:
   ArgParser();
 
-  ArgParser& add_usage(const std::string& usage);
-  ArgParser& add_text(const std::string& text);
-  ArgParser& add_pseudo(const std::string& left, const std::string& doc);
+  ArgParser& add_usage(std::string_view usage);
+  ArgParser& add_text(std::string_view text);
+  ArgParser& add_pseudo(std::string_view left, std::string_view doc);
   ArgParser& add_newline();
 
   ArgParser& add_option(int key,
                         char short_option,
-                        const std::string& long_option,
-                        const std::string& argument,
-                        const std::string& help,
+                        std::string_view long_option,
+                        std::string_view argument,
+                        std::string_view help,
                         bool visible = true);
 
   ParsedOptions parse_args(int argc, char** argv);
   void print_help(std::ostream& out) const;
 
 private:
-  void read_option(int id, const std::string& argument);
+  void read_option(int id, std::string_view argument);
 
   /** Find the Option structure that matches \a short_option */
   Option const* lookup_short_option(char short_option) const;
 
   /** Find the Option structure that matches \a long_option */
-  Option const* lookup_long_option (const std::string& long_option) const;
+  Option const* lookup_long_option (std::string_view long_option) const;
 
 private:
   std::string m_programm;
