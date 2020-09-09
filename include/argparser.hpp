@@ -17,8 +17,10 @@
 #ifndef HEADER_ARGPARSER_ARG_PARSER_HPP
 #define HEADER_ARGPARSER_ARG_PARSER_HPP
 
-#include <vector>
+#include <iostream>
 #include <string>
+#include <string_view>
+#include <vector>
 
 namespace argparser {
 
@@ -73,7 +75,7 @@ public:
                         bool visible = true);
 
   ParsedOptions parse_args(int argc, char** argv);
-  void print_help(std::ostream& out) const;
+  void print_help(std::ostream& out = std::cout) const;
 
 private:
   void read_option(int id, std::string_view argument);
