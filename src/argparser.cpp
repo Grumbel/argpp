@@ -73,7 +73,7 @@ ArgParser::parse_args(int argc, char** argv)
           ++i;
           while(i < argc)
           {
-            parsed_options.push_back(ParsedOption{ArgParser::REST_ARG, "", argv[i]});
+            parsed_options.push_back(ParsedOption{ArgumentType::REST, "", argv[i]});
             ++i;
           }
         }
@@ -158,20 +158,20 @@ ArgParser::parse_args(int argc, char** argv)
         }
         else
         {
-          parsed_options.push_back(ParsedOption{ArgParser::REST_ARG, "", "-"});
+          parsed_options.push_back(ParsedOption{ArgumentType::REST, "", "-"});
         }
       }
     }
     else
     {
-      parsed_options.push_back(ParsedOption{ArgParser::REST_ARG, "", argv[i]});
+      parsed_options.push_back(ParsedOption{ArgumentType::REST, "", argv[i]});
     }
   }
 
   return parsed_options;
 }
 
-ArgParser::Option const*
+Option const*
 ArgParser::lookup_short_option(char short_option) const
 {
   for(auto const& opt : m_options)
@@ -183,7 +183,7 @@ ArgParser::lookup_short_option(char short_option) const
   return nullptr;
 }
 
-ArgParser::Option const*
+Option const*
 ArgParser::lookup_long_option(const std::string& long_option) const
 {
   for(auto const& opt : m_options)
@@ -237,7 +237,7 @@ ArgParser::print_help(std::ostream& out) const
   {
     if (opt.visible)
     {
-      if (opt.key == USAGE)
+      if (opt.key == ArgumentType::USAGE)
       {
         if (first_usage)
         {
@@ -249,11 +249,11 @@ ArgParser::print_help(std::ostream& out) const
           out << "       " << m_programm << " " << opt.help << std::endl;
         }
       }
-      else if (opt.key == TEXT)
+      else if (opt.key == ArgumentType::TEXT)
       {
         pprint.print(opt.help);
       }
-      else if (opt.key == PSEUDO)
+      else if (opt.key == ArgumentType::PSEUDO)
       {
         pprint.print(std::string(column_width, ' '), opt.long_option, opt.help);
       }
@@ -297,7 +297,7 @@ ArgParser::add_usage(const std::string& usage)
 {
   Option option;
 
-  option.key          = USAGE;
+  option.key          = ArgumentType::USAGE;
   option.help         = usage;
   option.visible      = true;
 
@@ -311,7 +311,7 @@ ArgParser::add_pseudo(const std::string& left, const std::string& doc)
 {
   Option option;
 
-  option.key          = PSEUDO;
+  option.key          = ArgumentType::PSEUDO;
   option.long_option  = left;
   option.help         = doc;
   option.visible      = true;
@@ -334,7 +334,7 @@ ArgParser::add_text(const std::string& text)
 {
   Option option;
 
-  option.key          = TEXT;
+  option.key          = ArgumentType::TEXT;
   option.help         = text;
   option.visible      = true;
 

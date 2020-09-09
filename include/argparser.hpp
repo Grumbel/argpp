@@ -22,34 +22,34 @@
 
 namespace argparser {
 
+struct Option
+{
+  int key = {};
+  char short_option = {};
+  std::string long_option = {};
+  std::string help = {};
+  std::string argument = {};
+  bool visible = {};
+};
+
+struct ParsedOption
+{
+  int key = -1;
+  std::string option = {};
+  std::string argument = {};
+};
+
+namespace ArgumentType {
+enum {
+  REST = -1,
+  TEXT = -4,
+  USAGE = -5,
+  PSEUDO = -6
+};
+} // namespace ArgumentType
+
 class ArgParser
 {
-private:
-  struct Option
-  {
-    int key = {};
-    char        short_option = {};
-    std::string long_option = {};
-    std::string help = {};
-    std::string argument = {};
-    bool visible = {};
-  };
-
-public:
-  struct ParsedOption
-  {
-    int key = -1;
-    std::string option = {};
-    std::string argument = {};
-  };
-
-  enum {
-    REST_ARG  = -1,
-    TEXT      = -4,
-    USAGE     = -5,
-    PSEUDO    = -6
-  };
-
   typedef std::vector<ParsedOption> ParsedOptions;
 
 public:
