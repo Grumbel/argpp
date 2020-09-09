@@ -343,7 +343,9 @@ OptionGroup&
 ArgParser::add_group(std::string_view text)
 {
   m_groups.emplace_back();
-  m_groups.back().add_text(text);
+  if (!text.empty()) {
+    m_groups.back().add_text(text);
+  }
   return m_groups.back();
 }
 

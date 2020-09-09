@@ -83,7 +83,7 @@ public:
   ArgParser();
 
   OptionGroup& add_usage(std::string_view program, std::string_view usage);
-  OptionGroup& add_group(std::string_view text);
+  OptionGroup& add_group(std::string_view text = {});
 
   ParsedOptions parse_args(int argc, char** argv) const;
   void print_help(std::ostream& out = std::cout) const;
