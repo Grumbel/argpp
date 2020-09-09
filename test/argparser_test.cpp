@@ -23,9 +23,7 @@ int main(int argc, char** argv)
   {
     argparser::ArgParser parser;
 
-    parser
-      .add_usage("bar [FILES]... [BLA]..")
-      .add_usage("foo [FILES]... [BLA]..")
+    parser.add_usage(argv[0], "bar [FILES]... [BLA]..")
       .add_text("Dies und das")
       .add_newline()
       .add_option(1, 'v', "version", "", "Help text");

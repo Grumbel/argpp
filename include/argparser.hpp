@@ -45,10 +45,35 @@ namespace ArgumentType {
 enum {
   REST = -1,
   TEXT = -4,
-  USAGE = -5,
-  PSEUDO = -6
+  PSEUDO = -5
 };
 } // namespace ArgumentType
+
+class OptionGroup
+{
+  friend class ArgParser;
+public:
+  OptionGroup();
+
+  OptionGroup& add_text(std::string_view text);
+  OptionGroup& add_pseudo(std::string_view left, std::string_view doc);
+  OptionGroup& add_newline();
+
+  OptionGroup& add_option(int key,
+                          char short_option,
+                          std::string_view long_option,
+                          std::string_view argument,
+                          std::string_view help,
+                          bool visible = true);
+  OptionGroup& add_option(char short_option,
+                          std::string_view long_option,
+                          std::string_view argument,
+                          std::string_view help,
+                          bool visible = true);
+
+private:
+  std::vector<Option> m_options;
+};
 
 class ArgParser
 {
@@ -57,24 +82,10 @@ class ArgParser
 public:
   ArgParser();
 
-  ArgParser& add_usage(std::string_view usage);
-  ArgParser& add_text(std::string_view text);
-  ArgParser& add_pseudo(std::string_view left, std::string_view doc);
-  ArgParser& add_newline();
+  OptionGroup& add_usage(std::string_view program, std::string_view usage);
+  OptionGroup& add_group(std::string_view text);
 
-  ArgParser& add_option(int key,
-                        char short_option,
-                        std::string_view long_option,
-                        std::string_view argument,
-                        std::string_view help,
-                        bool visible = true);
-  ArgParser& add_option(char short_option,
-                        std::string_view long_option,
-                        std::string_view argument,
-                        std::string_view help,
-                        bool visible = true);
-
-  ParsedOptions parse_args(int argc, char** argv);
+  ParsedOptions parse_args(int argc, char** argv) const;
   void print_help(std::ostream& out = std::cout) const;
 
 private:
@@ -87,8 +98,9 @@ private:
   Option const* lookup_long_option (std::string_view long_option) const;
 
 private:
-  std::string m_programm;
-  std::vector<Option> m_options;
+  std::string m_program;
+  std::string m_usage;
+  std::vector<OptionGroup> m_groups;
 };
 
 } // namespace argparser

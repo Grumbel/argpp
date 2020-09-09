@@ -48,17 +48,16 @@ int get_terminal_width()
 namespace argparser {
 
 ArgParser::ArgParser() :
-  m_programm(),
-  m_options()
+  m_program(),
+  m_usage(),
+  m_groups()
 {
 }
 
 ArgParser::ParsedOptions
-ArgParser::parse_args(int argc, char** argv)
+ArgParser::parse_args(int argc, char** argv) const
 {
   ParsedOptions parsed_options;
-
-  m_programm = argv[0];
 
   for(int i = 1; i < argc; ++i)
   {
@@ -174,10 +173,13 @@ ArgParser::parse_args(int argc, char** argv)
 Option const*
 ArgParser::lookup_short_option(char short_option) const
 {
-  for(auto const& opt : m_options)
+  for(auto const& group : m_groups)
   {
-    if (opt.short_option == short_option) {
-      return &opt;
+    for(auto const& opt : group.m_options)
+    {
+      if (opt.short_option == short_option) {
+        return &opt;
+      }
     }
   }
   return nullptr;
@@ -186,10 +188,13 @@ ArgParser::lookup_short_option(char short_option) const
 Option const*
 ArgParser::lookup_long_option(std::string_view long_option) const
 {
-  for(auto const& opt : m_options)
+  for(auto const& group : m_groups)
   {
-    if (opt.long_option == long_option) {
-      return &opt;
+    for(auto const& opt : group.m_options)
+    {
+      if (opt.long_option == long_option) {
+        return &opt;
+      }
     }
   }
   return nullptr;
@@ -203,22 +208,25 @@ ArgParser::print_help(std::ostream& out) const
   int column_width = column_min_width;
 
   { // Calculate left column width
-    for(auto const& opt : m_options)
+    for(auto const& group : m_groups)
     {
-      int width = 2; // add two leading space
-      if (opt.short_option) {
-        width += 2; // "-a"
-      }
+      for(auto const& opt : group.m_options)
+      {
+        int width = 2; // add two leading space
+        if (opt.short_option) {
+          width += 2; // "-a"
+        }
 
-      if (!opt.long_option.empty()) {
-        width += static_cast<int>(opt.long_option.size()) + 2; // "--foobar"
-      }
+        if (!opt.long_option.empty()) {
+          width += static_cast<int>(opt.long_option.size()) + 2; // "--foobar"
+        }
 
-      if (!opt.argument.empty()) {
-        width += static_cast<int>(opt.argument.size()) + 1;
-      }
+        if (!opt.argument.empty()) {
+          width += static_cast<int>(opt.argument.size()) + 1;
+        }
 
-      column_width = std::max(column_width, width);
+        column_width = std::max(column_width, width);
+      }
     }
 
     column_width = column_width+2; // add two trailing space
@@ -232,82 +240,84 @@ ArgParser::print_help(std::ostream& out) const
 
   PrettyPrinter pprint(terminal_width); // -1 so we have a whitespace on the right side
 
-  bool first_usage = true;
-  for(auto const& opt : m_options)
+  out << "Usage: " << m_program << " " <<  m_usage << '\n';
+
+  if (!m_groups.empty()) {
+    out << '\n';
+  }
+
+  for(auto const& group : m_groups)
   {
-    if (opt.visible)
+    for(auto const& opt : group.m_options)
     {
-      if (opt.key == ArgumentType::USAGE)
+      if (opt.visible)
       {
-        if (first_usage)
+        if (opt.key == ArgumentType::TEXT)
         {
-          out << "Usage: " << m_programm << " " <<  opt.help << std::endl;
-          first_usage = false;
+          pprint.print(opt.help);
+        }
+        else if (opt.key == ArgumentType::PSEUDO)
+        {
+          pprint.print(std::string(column_width, ' '), opt.long_option, opt.help);
         }
         else
         {
-          out << "       " << m_programm << " " << opt.help << std::endl;
-        }
-      }
-      else if (opt.key == ArgumentType::TEXT)
-      {
-        pprint.print(opt.help);
-      }
-      else if (opt.key == ArgumentType::PSEUDO)
-      {
-        pprint.print(std::string(column_width, ' '), opt.long_option, opt.help);
-      }
-      else
-      {
-        constexpr size_t buffer_size = 256;
-        std::array<char, buffer_size> option   = { 0 };
-        std::array<char, buffer_size> argument = { 0 };
+          constexpr size_t buffer_size = 256;
+          std::array<char, buffer_size> option   = { 0 };
+          std::array<char, buffer_size> argument = { 0 };
 
-        if (opt.short_option)
-        {
-          if (opt.long_option.empty()) {
-            snprintf(option.data(), option.size(), "-%c", opt.short_option);
-          } else {
-            snprintf(option.data(), option.size(), "-%c, --%s", opt.short_option, opt.long_option.c_str());
+          if (opt.short_option)
+          {
+            if (opt.long_option.empty()) {
+              snprintf(option.data(), option.size(), "-%c", opt.short_option);
+            } else {
+              snprintf(option.data(), option.size(), "-%c, --%s", opt.short_option, opt.long_option.c_str());
+            }
           }
-        }
-        else
-        {
-          snprintf(option.data(), option.size(), "--%s", opt.long_option.c_str());
-        }
+          else
+          {
+            snprintf(option.data(), option.size(), "--%s", opt.long_option.c_str());
+          }
 
-        if (!opt.argument.empty())
-        {
-          snprintf(argument.data(), argument.size(), " %s", opt.argument.c_str());
+          if (!opt.argument.empty())
+          {
+            snprintf(argument.data(), argument.size(), " %s", opt.argument.c_str());
+          }
+
+          std::string left_column("  ");
+          left_column += option.data();
+          left_column += argument.data();
+          left_column += " ";
+
+          pprint.print(std::string(column_width, ' '), left_column, opt.help);
         }
-
-        std::string left_column("  ");
-        left_column += option.data();
-        left_column += argument.data();
-        left_column += " ";
-
-        pprint.print(std::string(column_width, ' '), left_column, opt.help);
       }
+    }
+
+    if (&group != &m_groups.back())
+    {
+      std::cout << '\n';
     }
   }
 }
 
-ArgParser&
-ArgParser::add_usage(std::string_view usage)
+OptionGroup&
+ArgParser::add_usage(std::string_view program, std::string_view usage)
 {
-  Option option;
+  m_program = program;
+  m_usage = usage;
 
-  option.key          = ArgumentType::USAGE;
-  option.help         = usage;
-  option.visible      = true;
-
-  m_options.push_back(option);
-
-  return *this;
+  m_groups.emplace_back();
+  return m_groups.back();
 }
 
-ArgParser&
-ArgParser::add_pseudo(std::string_view left, std::string_view doc)
+OptionGroup::OptionGroup() :
+  m_options()
+{
+}
+
+OptionGroup&
+OptionGroup::add_pseudo(std::string_view left, std::string_view doc)
 {
   Option option;
 
@@ -321,16 +331,24 @@ ArgParser::add_pseudo(std::string_view left, std::string_view doc)
   return *this;
 }
 
-ArgParser&
-ArgParser::add_newline()
+OptionGroup&
+OptionGroup::add_newline()
 {
   add_text("");
 
   return *this;
 }
 
-ArgParser&
-ArgParser::add_text(const std::string& text)
+OptionGroup&
+ArgParser::add_group(std::string_view text)
+{
+  m_groups.emplace_back();
+  m_groups.back().add_text(text);
+  return m_groups.back();
+}
+
+OptionGroup&
+OptionGroup::add_text(std::string_view text)
 {
   Option option;
 
@@ -343,8 +361,8 @@ ArgParser::add_text(const std::string& text)
   return *this;
 }
 
-ArgParser&
-ArgParser::add_option(char short_option,
+OptionGroup&
+OptionGroup::add_option(char short_option,
                       std::string_view long_option,
                       std::string_view argument,
                       std::string_view help,
@@ -353,8 +371,8 @@ ArgParser::add_option(char short_option,
   return add_option(short_option, short_option, long_option, argument, help, visible);
 }
 
-ArgParser&
-ArgParser::add_option(int key,
+OptionGroup&
+OptionGroup::add_option(int key,
                       char short_option,
                       std::string_view long_option,
                       std::string_view argument,
