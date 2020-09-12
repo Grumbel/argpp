@@ -30,7 +30,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_library(argparser
+add_library(argparser STATIC
   src/argparser.cpp
   src/prettyprinter.cpp)
 target_include_directories(argparser PUBLIC include/ src/)
