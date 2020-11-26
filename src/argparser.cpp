@@ -19,11 +19,12 @@
 #include <span>
 #include <string_view>
 
-#include <argparser/argparser.hpp>
+#include "argparser.hpp"
+#include "option_group.hpp"
+#include "prettyprinter.hpp"
 
 namespace argparser {
 
-#if 0
 namespace {
 
 constexpr int max_column_width = 5;
@@ -43,33 +44,6 @@ int get_terminal_width()
 }
 
 } // namespace
-#endif
-
-void
-OptionGroup::add_text(std::string_view text)
-{
-}
-
-void
-OptionGroup::add_newline()
-{
-}
-
-Option&
-OptionGroup::add_option(std::unique_ptr<Option> option)
-{
-  return *option;
-}
-
-void
-OptionGroup::add_alias(std::string alias, std::string_view name)
-{
-}
-
-void
-OptionGroup::add_alias(char alias, char name)
-{
-}
 
 class ParseContext
 {
@@ -100,49 +74,37 @@ private:
 };
 
 ArgParser::ArgParser() :
-  m_items()
+  m_program(),
+  m_usage(),
+  m_root()
 {
 }
 
 void
 ArgParser::add_usage(std::string_view program, std::string_view usage)
 {
-}
-
-OptionGroup&
-ArgParser::add_group(std::string_view name)
-{
-  return *(new OptionGroup);
+  m_program = program;
+  m_usage = usage;
 }
 
 OptionGroup&
 ArgParser::add_command(std::string_view name)
 {
-  return *(new OptionGroup);
-}
-
-PositionalItem&
-ArgParser::lookup_positional(int i)
-{
   throw std::runtime_error("not implemented");
 }
 
-Option&
-ArgParser::lookup_short_option(char c)
+OptionGroup&
+ArgParser::options()
 {
-  throw std::runtime_error("not implemented");
-}
-
-Option&
-ArgParser::lookup_long_option(std::string_view)
-{
-  throw std::runtime_error("not implemented");
+  return m_root;
 }
 
 void
 ArgParser::parse_args(int argc, char** argv)
 {
   ParseContext ctx(argc, argv);
+
+  OptionGroup* option_group = &m_root;
 
   int positional_counter = 0;
   while (ctx.next())
@@ -151,7 +113,7 @@ ArgParser::parse_args(int argc, char** argv)
 
     if (arg.empty() || arg[0] != '-') // rest
     {
-      PositionalItem& item = lookup_positional(positional_counter);
+      PositionalItem& item = option_group->lookup_positional(positional_counter);
       item.callback(arg);
       positional_counter += 1;
     }
@@ -161,7 +123,7 @@ ArgParser::parse_args(int argc, char** argv)
       {
         // Got a '--' treat everything after this as rest
         while (ctx.next()) {
-          PositionalItem& item = lookup_positional(positional_counter);
+          PositionalItem& item = option_group->lookup_positional(positional_counter);
           item.callback(arg);
           positional_counter += 1;
         }
@@ -176,7 +138,7 @@ ArgParser::parse_args(int argc, char** argv)
     {
       if (arg.size() == 1) // -
       {
-        PositionalItem& item = lookup_positional(positional_counter);
+        PositionalItem& item = option_group->lookup_positional(positional_counter);
         item.callback(arg);
         positional_counter += 1;
       }
@@ -191,30 +153,32 @@ ArgParser::parse_args(int argc, char** argv)
 void
 ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
 {
+  OptionGroup* option_group = &m_root;
+
   std::string_view opt = arg.substr(2);
-  std::string::size_type const equal_pos = arg.find('=', 2);
+  std::string::size_type const equal_pos = opt.find('=');
   if (equal_pos != std::string::npos) // --long-opt=with-arg
   {
-    opt = arg.substr(2, equal_pos);
-    std::string_view opt_arg = arg.substr(equal_pos + 1);
+    std::string_view opt_arg = opt.substr(equal_pos + 1);
+    opt = opt.substr(0, equal_pos);
 
-    Option& option = lookup_long_option(opt);
-    if (option.argument) {
-      option.callback(opt_arg);
+    Option& option = option_group->lookup_long_option(opt);
+    if (option.requires_argument()) {
+      option.call(opt_arg);
     } else {
-      // FIXME: error doesn't need arg
+      throw std::runtime_error("error doesn't need arg");
     }
   }
   else
   {
-    Option& option = lookup_long_option(opt);
-    if (!option.argument) {
-      option.callback(arg);
+    Option& option = option_group->lookup_long_option(opt);
+    if (!option.requires_argument()) {
+      option.call();
     } else {
       if (!ctx.next()) {
         throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
       }
-      option.callback(ctx.arg());
+      option.call(ctx.arg());
     }
   }
 }
@@ -222,22 +186,24 @@ ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
 void
 ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
 {
+  OptionGroup* option_group = &m_root;
+
   std::string_view const opts = arg.substr(1);
 
   for (size_t opts_i = 0; opts_i < opts.size(); ++opts_i) {
     char const opt = opts[opts_i];
-    Option& option = lookup_short_option(opt);
-    if (!option.argument) {
-      option.callback_wo();
+    Option& option = option_group->lookup_short_option(opt);
+    if (!option.requires_argument()) {
+      option.call();
     } else {
       if (opts_i != opts.size() - 1) { // -fARG
-        option.callback(opts.substr(opts_i));
+        option.call(opts.substr(opts_i + 1));
         break;
       } else { // -f ARG
         if (!ctx.next()) {
           throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
         }
-        option.callback(ctx.arg());
+        option.call(ctx.arg());
       }
     }
   }
@@ -246,27 +212,25 @@ ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
 void
 ArgParser::print_help(std::ostream& out) const
 {
-#if 0
   const int terminal_width = get_terminal_width();
   const int column_min_width = 8;
   int column_width = column_min_width;
 
   { // Calculate left column width
-    for(auto const& group : m_groups)
+    for (auto const& item : m_root.get_items())
     {
-      for(auto const& opt : group.m_options)
-      {
+      if (Option* opt = dynamic_cast<Option*>(item.get())) {
         int width = 2; // add two leading space
-        if (opt.short_option) {
+        if (opt->short_name) {
           width += 2; // "-a"
         }
 
-        if (!opt.long_option.empty()) {
-          width += static_cast<int>(opt.long_option.size()) + 2; // "--foobar"
+        if (!opt->long_name.empty()) {
+          width += static_cast<int>(opt->long_name.size()) + 2; // "--foobar"
         }
 
-        if (!opt.argument.empty()) {
-          width += static_cast<int>(opt.argument.size()) + 1;
+        if (opt->requires_argument()) {
+          width += static_cast<int>(opt->get_argument_name().size()) + 1;
         }
 
         column_width = std::max(column_width, width);
@@ -286,64 +250,48 @@ ArgParser::print_help(std::ostream& out) const
 
   out << "Usage: " << m_program << " " <<  m_usage << '\n';
 
-  if (!m_groups.empty()) {
-    out << '\n';
-  }
-
-  for(auto const& group : m_groups)
+  for (auto const& item : m_root.get_items())
   {
-    for(auto const& opt : group.m_options)
-    {
-      if (opt.visible)
+    if (TextItem const* text_item = dynamic_cast<TextItem*>(item.get())) {
+      pprint.print(text_item->text);
+    }
+    // else if (opt.key == ArgumentType::PSEUDO)
+    // {
+    //   pprint.print(std::string(column_width, ' '), opt.long_name, opt.help);
+    // }
+    else if (Option* opt = dynamic_cast<Option*>(item.get())) {
       {
-        if (opt.key == ArgumentType::TEXT)
+        constexpr size_t buffer_size = 256;
+        std::array<char, buffer_size> option   = { 0 };
+        std::array<char, buffer_size> argument = { 0 };
+
+        if (opt->short_name)
         {
-          pprint.print(opt.help);
-        }
-        else if (opt.key == ArgumentType::PSEUDO)
-        {
-          pprint.print(std::string(column_width, ' '), opt.long_option, opt.help);
+          if (opt->long_name.empty()) {
+            snprintf(option.data(), option.size(), "-%c", opt->short_name);
+          } else {
+            snprintf(option.data(), option.size(), "-%c, --%s", opt->short_name, opt->long_name.c_str());
+          }
         }
         else
         {
-          constexpr size_t buffer_size = 256;
-          std::array<char, buffer_size> option   = { 0 };
-          std::array<char, buffer_size> argument = { 0 };
-
-          if (opt.short_option)
-          {
-            if (opt.long_option.empty()) {
-              snprintf(option.data(), option.size(), "-%c", opt.short_option);
-            } else {
-              snprintf(option.data(), option.size(), "-%c, --%s", opt.short_option, opt.long_option.c_str());
-            }
-          }
-          else
-          {
-            snprintf(option.data(), option.size(), "--%s", opt.long_option.c_str());
-          }
-
-          if (!opt.argument.empty())
-          {
-            snprintf(argument.data(), argument.size(), " %s", opt.argument.c_str());
-          }
-
-          std::string left_column("  ");
-          left_column += option.data();
-          left_column += argument.data();
-          left_column += " ";
-
-          pprint.print(std::string(column_width, ' '), left_column, opt.help);
+          snprintf(option.data(), option.size(), "--%s", opt->long_name.c_str());
         }
+
+        if (opt->requires_argument())
+        {
+          snprintf(argument.data(), argument.size(), " %s", opt->get_argument_name().c_str());
+        }
+
+        std::string left_column("  ");
+        left_column += option.data();
+        left_column += argument.data();
+        left_column += " ";
+
+        pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
       }
     }
-
-    if (&group != &m_groups.back())
-    {
-      std::cout << '\n';
-    }
   }
-#endif
 }
 
 } // namespace argparser

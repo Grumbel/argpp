@@ -21,15 +21,82 @@
 
 namespace argparser {
 
-template<typename F>
-struct Argument
+template<typename T> inline
+T from_string(std::string_view text)
 {
-  //std::result_of<F()>::type convert(std::string_text text) {
-  //  return convert_func(text);
-  //}
+  return T(text);
+}
 
-  std::string name;
-  F convert_func;
+template<> inline
+bool from_string<bool>(std::string_view text)
+{
+  if (text == "0") {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+template<> inline
+int from_string<int>(std::string_view text)
+{
+  return std::stoi(std::string(text));
+}
+
+template<> inline
+float from_string<float>(std::string_view text)
+{
+  return std::stof(std::string(text));
+}
+
+class ArgumentBase
+{
+public:
+  ArgumentBase(std::string name) :
+    m_name(name)
+  {}
+  virtual ~ArgumentBase() {}
+
+  std::string const& get_name() const { return m_name; }
+
+  virtual void call(std::string_view text) = 0;
+
+private:
+  std::string m_name;
+};
+
+template<typename T>
+class Argument : public ArgumentBase
+{
+public:
+  using type = T;
+
+public:
+  Argument(std::string name) :
+    ArgumentBase(name),
+    m_convert_func(from_string<T>),
+    m_callback()
+  {}
+
+  template<typename F>
+  Argument(std::string name, F func) :
+    ArgumentBase(name),
+    m_convert_func(func)
+  {}
+
+  void on(std::function<void (T)> callback) {
+    assert(m_callback);
+    m_callback = callback;
+  }
+
+  void call(std::string_view text) override
+  {
+    m_callback(m_convert_func(text));
+  }
+
+private:
+  std::function<T (std::string_view)> m_convert_func;
+  std::function<void (T)> m_callback;
 };
 
 } // namespace argparser

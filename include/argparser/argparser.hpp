@@ -24,55 +24,12 @@
 #include <vector>
 
 #include "item.hpp"
+#include "option_group.hpp"
 
 namespace argparser {
 
 class ParseContext;
-
-using Item = std::variant<TextItem, CommandItem>;
-
-class OptionGroup
-{
-public:
-  OptionGroup() : m_items() {}
-  ~OptionGroup() {}
-
-  void add_text(std::string_view text);
-  void add_newline();
-  Option& add_option(std::unique_ptr<Option> option);
-  void add_alias(std::string alias, std::string_view name);
-  void add_alias(char alias, char name);
-
-  template<typename T>
-  Option& add_option(char short_name, std::string_view long_name, Argument<T> argument, std::string help)
-  {
-    auto option = std::make_unique<Option>(short_name, long_name,
-                             std::make_unique<Argument<T>>(std::move(argument)),
-                             help);
-    return add_option(option);
-  }
-
-  /*
-  template<typename T>
-  Option& add_option(std::string_view long_name, Argument<T> argument, std::string help)
-  {
-
-  }
-
-  template<typename T>
-  Option& add_option(char short_name, std::string_view long_name, std::string help)
-  {
-  }
-
-  template<typename T>
-  Option& add_option(std::string_view long_name, std::string help)
-  {
-  }
-  */
-
-private:
-  std::vector<Item> m_items;
-};
+class OptionGroup;
 
 class ArgParser
 {
@@ -80,8 +37,8 @@ public:
   ArgParser();
 
   void add_usage(std::string_view program, std::string_view usage);
-  OptionGroup& add_group(std::string_view name = {});
-  void add_command(std::string_view name, ArgParser argp);
+  OptionGroup& options();
+  OptionGroup& add_command(std::string_view name);
 
   void print_help(std::ostream& out = std::cout) const;
   void parse_args(int argc, char** argv);
@@ -90,12 +47,10 @@ private:
   void parse_long_option(ParseContext& ctx, std::string_view arg);
   void parse_short_option(ParseContext& ctx, std::string_view arg);
 
-  PositionalItem& lookup_positional(int i);
-  Option& lookup_short_option(char c);
-  Option& lookup_long_option(std::string_view);
-
 private:
-  std::vector<Item> m_items;
+  std::string m_program;
+  std::string m_usage;
+  OptionGroup m_root;
 
 private:
   ArgParser(const ArgParser&) = delete;

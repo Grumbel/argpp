@@ -17,8 +17,10 @@
 #ifndef HEADER_ARGPARSER_ITEM_HPP
 #define HEADER_ARGPARSER_ITEM_HPP
 
+#include <assert.h>
 #include <functional>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "argument.hpp"
@@ -26,41 +28,104 @@
 namespace argparser {
 
 class Option;
+class OptionGroup;
 
-struct OptionGroupItem
+class Item
 {
+public:
+  virtual ~Item() {}
+};
+
+class TextItem : public Item
+{
+public:
+  std::string text;
+};
+
+class CommandItem : public Item
+{
+public:
   std::string name;
-  std::vector<std::unique_ptr<Option>> options;
+  std::unique_ptr<OptionGroup> option_group;
 };
 
-struct TextItem
+class PositionalItem : public Item
 {
-  std::string m_text;
-};
-
-struct CommandItem
-{
-  std::string name;
-  std::unique_ptr<OptionGroupItem> option_group;
-};
-
-struct PositionalItem
-{
+public:
   std::string name;
   std::function<void (std::string_view)> callback;
 };
 
-struct Option
+class RestItem : public Item
 {
+public:
+  std::string name;
+  std::function<void (std::string_view)> callback;
+};
+
+class Option : public Item
+{
+public:
+  Option(char short_name_, std::string long_name_, std::unique_ptr<ArgumentBase> argument, std::string help_) :
+    short_name(short_name_),
+    long_name(long_name_),
+    m_argument(std::move(argument)),
+    m_help(help_),
+    m_callback()
+  {}
+
+  std::string const& get_help() const { return m_help; }
+
+  bool requires_argument() const { return m_argument != nullptr; }
+  std::string const& get_argument_name() const {
+    assert(m_argument != nullptr);
+    return m_argument->get_name();
+  }
+
+  void on(std::function<void ()> cb) {
+    assert(!requires_argument());
+
+    m_callback = cb;
+  }
+
+  template<typename T>
+  void on_arg2(std::function<void (T)> cb) {
+    assert(requires_argument());
+
+    Argument<T>* arg = dynamic_cast<Argument<T>*>(m_argument.get());
+    assert(arg != nullptr);
+    arg->on(cb);
+  }
+
+  template<typename T>
+  void store(T& place, T const value) {
+    assert(!requires_argument());
+
+    on([&place, value = std::move(value)]{
+      place = value;
+    });
+  }
+
+  void call() {
+    m_callback();
+  }
+
+  void call(std::string_view text) {
+    m_argument->call(text);
+  }
+
   char short_name;
   std::string long_name;
-  bool argument;
-  std::function<void ()> callback_wo;
-  std::function<void (std::string_view)> callback;
+
+private:
+  std::unique_ptr<ArgumentBase> m_argument;
+  std::string m_help;
+  std::function<void ()> m_callback;
 };
 
+#if 0
 template<typename T>
-struct TOption : public Option
+class TOption : public Option
 {
 public:
   /*
@@ -91,6 +156,31 @@ public:
   std::string long_name;
   std::unique_ptr<Argument<T>> argument;
   std::function<void (T)> callback;
+};
+#endif
+
+class LongOptionAlias : public Item
+{
+public:
+  LongOptionAlias(std::string name, Option& option) :
+    m_name(name),
+    m_option(option)
+  {}
+
+  std::string m_name;
+  Option& m_option;
+};
+
+class ShortOptionAlias : public Item
+{
+public:
+  ShortOptionAlias(char name, Option& option) :
+    m_name(name),
+    m_option(option)
+  {}
+
+  char m_name;
+  Option& m_option;
 };
 
 } // namespace argparser

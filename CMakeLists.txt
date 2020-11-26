@@ -30,9 +30,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+file(GLOB ARGPARSER_SOURCES src/*.cpp)
 add_library(argparser STATIC
-  src/argparser.cpp
-  src/prettyprinter.cpp)
+  ${ARGPARSER_SOURCES})
 target_include_directories(argparser PUBLIC include/ include/argparser/ src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
 set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
