@@ -21,14 +21,31 @@ int main(int argc, char** argv)
 {
   try
   {
-    argparser::ArgParser parser;
+    argparser::ArgParser argp;
 
-    parser.add_usage(argv[0], "bar [FILES]... [BLA]..")
-      .add_text("Dies und das")
-      .add_newline()
-      .add_option(1, 'v', "version", "", "Help text");
+    argp.add_usage(argv[0], "bar [FILES]... [BLA]..");
 
-    parser.parse_args(argc, argv);
+    auto& opts = argp.add_group("Options");
+    opts.add_text("Dies und das");
+    opts.add_newline();
+
+    //auto& group = argp.add_group("Display Options:");
+    //gcmd = add_command("install");
+    //group.add_option("+v", "--version", "", "Help text");
+    //group.add_option({"+v", "+version", Argument::NONE, "Help text"}).then([]{ .... });
+    //group.add_option("-v", "-version", "Help text").store(&var, true);
+    //group.add_option("-v", "-version", "Help text").store(&var, true);
+    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").store(&var);
+    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").append(&var);
+    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").on([](ParseContext& ctx, int value){
+    //ctx.raise_exception("illegal option");
+    //});
+
+    //group.add(Option("-v", "--version").argument(Argument::NONE).help("Help text").store(&var, false));
+    //Argument<std::tuple<int, int, std::string>>();
+    //Argument<std::vector<int>()
+
+    argp.parse_args(argc, argv);
 
     return 0;
   }

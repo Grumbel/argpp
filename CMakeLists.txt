@@ -25,7 +25,7 @@ include(ClangTidy)
 
 option(BUILD_TESTS "Build tests" OFF)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -33,7 +33,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(argparser STATIC
   src/argparser.cpp
   src/prettyprinter.cpp)
-target_include_directories(argparser PUBLIC include/ src/)
+target_include_directories(argparser PUBLIC include/ include/argparser/ src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
 set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
 

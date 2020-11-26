@@ -1,5 +1,5 @@
 // ArgParse - A Command Line Argument Parser for C++
-// Copyright (C) 2008 Ingo Ruhnke <grumbel@gmail.com>
+// Copyright (C) 2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "argparser.hpp"
-
-#include <array>
-#include <assert.h>
-#include <stdio.h>
-#include <ostream>
-#include <stdexcept>
 #include <sys/ioctl.h>
 
-#include "prettyprinter.hpp"
+#include <span>
+#include <string_view>
 
+#include <argparser/argparser.hpp>
+
+namespace argparser {
+
+#if 0
 namespace {
 
 constexpr int max_column_width = 5;
@@ -44,165 +43,210 @@ int get_terminal_width()
 }
 
 } // namespace
+#endif
 
-namespace argparser {
-
-ArgParser::ArgParser() :
-  m_program(),
-  m_usage(),
-  m_groups()
+void
+OptionGroup::add_text(std::string_view text)
 {
 }
 
-ArgParser::ParsedOptions
-ArgParser::parse_args(int argc, char** argv) const
+void
+OptionGroup::add_newline()
 {
-  ParsedOptions parsed_options;
+}
 
-  for(int i = 1; i < argc; ++i)
+Option&
+OptionGroup::add_option(std::unique_ptr<Option> option)
+{
+  return *option;
+}
+
+void
+OptionGroup::add_alias(std::string alias, std::string_view name)
+{
+}
+
+void
+OptionGroup::add_alias(char alias, char name)
+{
+}
+
+class ParseContext
+{
+public:
+  ParseContext(int argc, char** argv) :
+    m_idx(0),
+    m_argv(argv, argc)
+  {}
+
+  std::string_view arg() const {
+    return m_argv[m_idx];
+  }
+
+  bool next() {
+    if (m_idx < m_argv.size() - 1) {
+      m_idx += 1;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  std::string_view program() const { return m_argv[0]; }
+
+private:
+  size_t m_idx;
+  std::span<char*> m_argv;
+};
+
+ArgParser::ArgParser() :
+  m_items()
+{
+}
+
+void
+ArgParser::add_usage(std::string_view program, std::string_view usage)
+{
+}
+
+OptionGroup&
+ArgParser::add_group(std::string_view name)
+{
+  return *(new OptionGroup);
+}
+
+OptionGroup&
+ArgParser::add_command(std::string_view name)
+{
+  return *(new OptionGroup);
+}
+
+PositionalItem&
+ArgParser::lookup_positional(int i)
+{
+  throw std::runtime_error("not implemented");
+}
+
+Option&
+ArgParser::lookup_short_option(char c)
+{
+  throw std::runtime_error("not implemented");
+}
+
+Option&
+ArgParser::lookup_long_option(std::string_view)
+{
+  throw std::runtime_error("not implemented");
+}
+
+void
+ArgParser::parse_args(int argc, char** argv)
+{
+  ParseContext ctx(argc, argv);
+
+  int positional_counter = 0;
+  while (ctx.next())
   {
-    if (argv[i][0] == '-')
+    std::string_view const arg = ctx.arg();
+
+    if (arg.empty() || arg[0] != '-') // rest
     {
-      if (argv[i][1] == '-')
+      PositionalItem& item = lookup_positional(positional_counter);
+      item.callback(arg);
+      positional_counter += 1;
+    }
+    else if (arg[1] == '-') // --...
+    {
+      if (arg.size() == 2) // --
       {
-        // We got a long option
-        if (argv[i][2] == '\0')
-        {
-          // Got a '--', so we stop evaluating arguments
-          ++i;
-          while(i < argc)
-          {
-            parsed_options.push_back(ParsedOption{ArgumentType::REST, "", argv[i]});
-            ++i;
-          }
+        // Got a '--' treat everything after this as rest
+        while (ctx.next()) {
+          PositionalItem& item = lookup_positional(positional_counter);
+          item.callback(arg);
+          positional_counter += 1;
         }
-        else
-        {
-          std::string opt = argv[i] + 2;
-          std::string long_opt;
-          std::string long_opt_arg;
-
-          std::string::size_type pos = opt.find('=');
-
-          if (pos != std::string::npos)
-          {
-            long_opt = opt.substr(0, pos);
-            long_opt_arg = opt.substr(pos+1);
-          }
-          else
-          {
-            long_opt = opt;
-          }
-
-          // Long Option
-          Option const* option = lookup_long_option(long_opt);
-          if (!option) {
-            throw std::runtime_error("unrecognized option '" + std::string(argv[i]) + "'");
-          }
-
-          if (option->argument.empty())
-          {
-            parsed_options.push_back(ParsedOption{option->key, long_opt, ""});
-          }
-          else
-          {
-            if (pos != std::string::npos)
-            {
-              parsed_options.push_back(ParsedOption{option->key, long_opt, long_opt_arg});
-            }
-            else
-            {
-              if (i == argc - 1) {
-                throw std::runtime_error("option '" + std::string(argv[i]) + "' requires an argument");
-              }
-
-              parsed_options.push_back(ParsedOption{option->key, long_opt, argv[i + 1]});
-              ++i;
-            }
-          }
-        }
+        break;
       }
       else
       {
-        // We got a short option
-        char* p = argv[i] + 1;
-
-        if (*p != '\0')
-        {
-          // Handle option chains
-          while (*p)
-          {
-            // Short option(s)
-            Option const* option = lookup_short_option(*p);
-            if (!option) {
-              throw std::runtime_error("invalid option -- " + std::string(1, *p));
-            }
-
-            if (option->argument.empty())
-            {
-              parsed_options.push_back(ParsedOption{option->key, std::string(1, *p), ""});
-            }
-            else
-            {
-              if (i == argc - 1 || *(p+1) != '\0') {
-                throw std::runtime_error("option requires an argument -- " + std::string(1, *p));
-              }
-
-              parsed_options.push_back(ParsedOption{option->key, std::string(1, *p), argv[i + 1]});
-              ++i;
-            }
-
-            ++p;
-          }
-        }
-        else
-        {
-          parsed_options.push_back(ParsedOption{ArgumentType::REST, "", "-"});
-        }
+        parse_long_option(ctx, arg);
       }
     }
-    else
+    else // short option
     {
-      parsed_options.push_back(ParsedOption{ArgumentType::REST, "", argv[i]});
+      if (arg.size() == 1) // -
+      {
+        PositionalItem& item = lookup_positional(positional_counter);
+        item.callback(arg);
+        positional_counter += 1;
+      }
+      else
+      {
+        parse_short_option(ctx, arg);
+      }
     }
   }
-
-  return parsed_options;
 }
 
-Option const*
-ArgParser::lookup_short_option(char short_option) const
+void
+ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
 {
-  for(auto const& group : m_groups)
+  std::string_view opt = arg.substr(2);
+  std::string::size_type const equal_pos = arg.find('=', 2);
+  if (equal_pos != std::string::npos) // --long-opt=with-arg
   {
-    for(auto const& opt : group.m_options)
-    {
-      if (opt.short_option == short_option) {
-        return &opt;
-      }
+    opt = arg.substr(2, equal_pos);
+    std::string_view opt_arg = arg.substr(equal_pos + 1);
+
+    Option& option = lookup_long_option(opt);
+    if (option.argument) {
+      option.callback(opt_arg);
+    } else {
+      // FIXME: error doesn't need arg
     }
   }
-  return nullptr;
+  else
+  {
+    Option& option = lookup_long_option(opt);
+    if (!option.argument) {
+      option.callback(arg);
+    } else {
+      if (!ctx.next()) {
+        throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
+      }
+      option.callback(ctx.arg());
+    }
+  }
 }
 
-Option const*
-ArgParser::lookup_long_option(std::string_view long_option) const
+void
+ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
 {
-  for(auto const& group : m_groups)
-  {
-    for(auto const& opt : group.m_options)
-    {
-      if (opt.long_option == long_option) {
-        return &opt;
+  std::string_view const opts = arg.substr(1);
+
+  for (size_t opts_i = 0; opts_i < opts.size(); ++opts_i) {
+    char const opt = opts[opts_i];
+    Option& option = lookup_short_option(opt);
+    if (!option.argument) {
+      option.callback_wo();
+    } else {
+      if (opts_i != opts.size() - 1) { // -fARG
+        option.callback(opts.substr(opts_i));
+        break;
+      } else { // -f ARG
+        if (!ctx.next()) {
+          throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
+        }
+        option.callback(ctx.arg());
       }
     }
   }
-  return nullptr;
 }
 
 void
 ArgParser::print_help(std::ostream& out) const
 {
+#if 0
   const int terminal_width = get_terminal_width();
   const int column_min_width = 8;
   int column_width = column_min_width;
@@ -299,102 +343,7 @@ ArgParser::print_help(std::ostream& out) const
       std::cout << '\n';
     }
   }
-}
-
-OptionGroup&
-ArgParser::add_usage(std::string_view program, std::string_view usage)
-{
-  m_program = program;
-  m_usage = usage;
-
-  m_groups.emplace_back();
-  return m_groups.back();
-}
-
-OptionGroup::OptionGroup() :
-  m_options()
-{
-}
-
-OptionGroup&
-OptionGroup::add_pseudo(std::string_view left, std::string_view doc)
-{
-  Option option;
-
-  option.key          = ArgumentType::PSEUDO;
-  option.long_option  = left;
-  option.help         = doc;
-  option.visible      = true;
-
-  m_options.push_back(option);
-
-  return *this;
-}
-
-OptionGroup&
-OptionGroup::add_newline()
-{
-  add_text("");
-
-  return *this;
-}
-
-OptionGroup&
-ArgParser::add_group(std::string_view text)
-{
-  m_groups.emplace_back();
-  if (!text.empty()) {
-    m_groups.back().add_text(text);
-  }
-  return m_groups.back();
-}
-
-OptionGroup&
-OptionGroup::add_text(std::string_view text)
-{
-  Option option;
-
-  option.key          = ArgumentType::TEXT;
-  option.help         = text;
-  option.visible      = true;
-
-  m_options.push_back(option);
-
-  return *this;
-}
-
-OptionGroup&
-OptionGroup::add_option(char short_option,
-                      std::string_view long_option,
-                      std::string_view argument,
-                      std::string_view help,
-                      bool visible)
-{
-  return add_option(short_option, short_option, long_option, argument, help, visible);
-}
-
-OptionGroup&
-OptionGroup::add_option(int key,
-                      char short_option,
-                      std::string_view long_option,
-                      std::string_view argument,
-                      std::string_view help,
-                      bool visible)
-{
-  assert(short_option || (!short_option && !long_option.empty()));
-
-  Option option;
-
-  option.key          = key;
-  option.short_option = short_option;
-  option.long_option  = long_option;
-  option.help         = help;
-  option.argument     = argument;
-  option.visible      = visible;
-
-  m_options.push_back(option);
-
-  return *this;
+#endif
 }
 
 } // namespace argparser
