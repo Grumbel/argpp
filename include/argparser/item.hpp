@@ -49,6 +49,22 @@ private:
   std::string m_text;
 };
 
+class PseudoItem : public Item
+{
+public:
+  PseudoItem(std::string name, std::string help) :
+    m_name(std::move(name)),
+    m_help(std::move(help))
+  {}
+
+  std::string const& get_name() const { return m_name; }
+  std::string const& get_help() const { return m_help; }
+
+private:
+  std::string m_name;
+  std::string m_help;
+};
+
 class CommandItem : public Item
 {
 public:

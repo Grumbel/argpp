@@ -1,5 +1,5 @@
 // ArgParse - A Command Line Argument Parser for C++
-// Copyright (C) 2020 Ingo Ruhnke <grumbel@gmail.com>
+// Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -212,7 +212,7 @@ ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
 void
 ArgParser::print_help(std::ostream& out) const
 {
-  const int terminal_width = get_terminal_width();
+  const int terminal_width = std::min(get_terminal_width(), 120);
   const int column_min_width = 8;
   int column_width = column_min_width;
 
@@ -254,42 +254,33 @@ ArgParser::print_help(std::ostream& out) const
   {
     if (TextItem const* text_item = dynamic_cast<TextItem*>(item.get())) {
       pprint.print(text_item->get_text());
-    }
-    // else if (opt.key == ArgumentType::PSEUDO)
-    // {
-    //   pprint.print(std::string(column_width, ' '), opt.long_name, opt.help);
-    // }
-    else if (Option* opt = dynamic_cast<Option*>(item.get())) {
-      {
-        constexpr size_t buffer_size = 256;
-        std::array<char, buffer_size> option   = { 0 };
-        std::array<char, buffer_size> argument = { 0 };
+    } else if (PseudoItem* pseudo_item = dynamic_cast<PseudoItem*>(item.get())) {
+      pprint.print(std::string(column_width, ' '), pseudo_item->get_name(), pseudo_item->get_help());
+    } else if (Option* opt = dynamic_cast<Option*>(item.get())) {
+      constexpr size_t buffer_size = 256;
+      std::array<char, buffer_size> option   = { 0 };
+      std::array<char, buffer_size> argument = { 0 };
 
-        if (opt->get_short_name())
-        {
-          if (opt->get_long_name().empty()) {
-            snprintf(option.data(), option.size(), "-%c", opt->get_short_name());
-          } else {
-            snprintf(option.data(), option.size(), "-%c, --%s", opt->get_short_name(), opt->get_long_name().c_str());
-          }
+      if (opt->get_short_name()) {
+        if (opt->get_long_name().empty()) {
+          snprintf(option.data(), option.size(), "-%c", opt->get_short_name());
+        } else {
+          snprintf(option.data(), option.size(), "-%c, --%s", opt->get_short_name(), opt->get_long_name().c_str());
         }
-        else
-        {
-          snprintf(option.data(), option.size(), "--%s", opt->get_long_name().c_str());
-        }
-
-        if (opt->requires_argument())
-        {
-          snprintf(argument.data(), argument.size(), " %s", dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
-        }
-
-        std::string left_column("  ");
-        left_column += option.data();
-        left_column += argument.data();
-        left_column += " ";
-
-        pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
+      } else {
+        snprintf(option.data(), option.size(), "--%s", opt->get_long_name().c_str());
       }
+
+      if (opt->requires_argument()) {
+        snprintf(argument.data(), argument.size(), " %s", dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
+      }
+
+      std::string left_column("  ");
+      left_column += option.data();
+      left_column += argument.data();
+      left_column += " ";
+
+      pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
     }
   }
 }

@@ -57,19 +57,17 @@ public:
   bool requires_argument() const override { return false; }
 
   void call() {
-    m_callback();
+    if (m_callback) {
+      m_callback();
+    }
   }
 
   void then(std::function<void ()> cb) {
-    assert(!requires_argument());
-
     m_callback = cb;
   }
 
   template<typename T>
   void store(T& place, T const value) {
-    assert(!requires_argument());
-
     then([&place, value = std::move(value)]{
       place = value;
     });

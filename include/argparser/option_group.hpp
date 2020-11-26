@@ -32,9 +32,11 @@ public:
   OptionGroup() : m_items() {}
   ~OptionGroup() {}
 
-  void add_text(std::string_view text);
+  void add_text(std::string text);
   void add_newline();
-  void add_group(std::string_view name);
+  void add_group(std::string name);
+
+  void add_pseudo(std::string name, std::string help);
 
   void add_alias(std::string name, Option& option);
   void add_alias(char name, Option& option);

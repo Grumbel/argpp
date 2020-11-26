@@ -1,5 +1,5 @@
 // ArgParse - A Command Line Argument Parser for C++
-// Copyright (C) 2020 Ingo Ruhnke <grumbel@gmail.com>
+// Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,21 +19,27 @@
 namespace argparser {
 
 void
-OptionGroup::add_group(std::string_view name)
+OptionGroup::add_group(std::string name)
 {
-  m_items.push_back(std::make_unique<TextItem>(std::string(name)));
+  m_items.push_back(std::make_unique<TextItem>(std::move(name)));
 }
 
 void
-OptionGroup::add_text(std::string_view text)
+OptionGroup::add_text(std::string text)
 {
-  m_items.push_back(std::make_unique<TextItem>(std::string(text)));
+  m_items.push_back(std::make_unique<TextItem>(std::move(text)));
 }
 
 void
 OptionGroup::add_newline()
 {
   m_items.push_back(std::make_unique<TextItem>(""));
+}
+
+void
+OptionGroup::add_pseudo(std::string name, std::string help)
+{
+  m_items.push_back(std::make_unique<PseudoItem>(std::move(name), std::move(help)));
 }
 
 Option&
