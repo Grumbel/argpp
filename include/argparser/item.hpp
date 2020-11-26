@@ -1,5 +1,5 @@
 // ArgParse - A Command Line Argument Parser for C++
-// Copyright (C) 2020 Ingo Ruhnke <grumbel@gmail.com>
+// Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,7 +39,14 @@ public:
 class TextItem : public Item
 {
 public:
-  std::string text;
+  TextItem(std::string text) :
+    m_text(std::move(text))
+  {}
+
+  std::string const& get_text() const { return m_text; }
+
+private:
+  std::string m_text;
 };
 
 class CommandItem : public Item
@@ -63,102 +70,6 @@ public:
   std::function<void (std::string_view)> callback;
 };
 
-class Option : public Item
-{
-public:
-  Option(char short_name_, std::string long_name_, std::unique_ptr<ArgumentBase> argument, std::string help_) :
-    short_name(short_name_),
-    long_name(long_name_),
-    m_argument(std::move(argument)),
-    m_help(help_),
-    m_callback()
-  {}
-
-  std::string const& get_help() const { return m_help; }
-
-  bool requires_argument() const { return m_argument != nullptr; }
-  std::string const& get_argument_name() const {
-    assert(m_argument != nullptr);
-    return m_argument->get_name();
-  }
-
-  void on(std::function<void ()> cb) {
-    assert(!requires_argument());
-
-    m_callback = cb;
-  }
-
-  template<typename T>
-  void on_arg2(std::function<void (T)> cb) {
-    assert(requires_argument());
-
-    Argument<T>* arg = dynamic_cast<Argument<T>*>(m_argument.get());
-    assert(arg != nullptr);
-    arg->on(cb);
-  }
-
-  template<typename T>
-  void store(T& place, T const value) {
-    assert(!requires_argument());
-
-    on([&place, value = std::move(value)]{
-      place = value;
-    });
-  }
-
-  void call() {
-    m_callback();
-  }
-
-  void call(std::string_view text) {
-    m_argument->call(text);
-  }
-
-  char short_name;
-  std::string long_name;
-
-private:
-  std::unique_ptr<ArgumentBase> m_argument;
-  std::string m_help;
-  std::function<void ()> m_callback;
-};
-
-#if 0
-template<typename T>
-class TOption : public Option
-{
-public:
-  /*
-  TOption(char short_name, std::string long_name, Argument<T> argument) :
-    m_short_name(short_name),
-    m_long_name(std::move(long_name)),
-    m_argument(std::move(argument))
-  {}
-
-  char short_name() const override;
-  std::string const& long_name() const override;
-  bool requires_argument() const override {
-    return m_argument != nullptr;
-  }
-
-  void emit() override {
-    assert(!requires_argument());
-    callback();
-  }
-
-  void emit(std::string_view text) override {
-    assert(requires_argument());
-    m_callback(m_convert(text));
-  }
-  */
-
-  char short_name;
-  std::string long_name;
-  std::unique_ptr<Argument<T>> argument;
-  std::function<void (T)> callback;
-};
-#endif
-
 class LongOptionAlias : public Item
 {
 public:
@@ -167,6 +78,10 @@ public:
     m_option(option)
   {}
 
+  std::string const& get_name() const { return m_name; }
+  Option& get_option() const { return m_option; }
+
+private:
   std::string m_name;
   Option& m_option;
 };
@@ -179,6 +94,10 @@ public:
     m_option(option)
   {}
 
+  char get_name() const { return m_name; }
+  Option& get_option() const { return m_option; }
+
+private:
   char m_name;
   Option& m_option;
 };

@@ -21,16 +21,19 @@ namespace argparser {
 void
 OptionGroup::add_group(std::string_view name)
 {
+  m_items.push_back(std::make_unique<TextItem>(std::string(name)));
 }
 
 void
 OptionGroup::add_text(std::string_view text)
 {
+  m_items.push_back(std::make_unique<TextItem>(std::string(text)));
 }
 
 void
 OptionGroup::add_newline()
 {
+  m_items.push_back(std::make_unique<TextItem>(""));
 }
 
 Option&
@@ -42,13 +45,15 @@ OptionGroup::add_option(std::unique_ptr<Option> option)
 }
 
 void
-OptionGroup::add_alias(std::string alias, Option& option)
+OptionGroup::add_alias(std::string name, Option& option)
 {
+  m_items.push_back(std::make_unique<LongOptionAlias>(name, option));
 }
 
 void
-OptionGroup::add_alias(char alias, Option& option)
+OptionGroup::add_alias(char name, Option& option)
 {
+  m_items.push_back(std::make_unique<ShortOptionAlias>(name, option));
 }
 
 PositionalItem&
@@ -72,9 +77,12 @@ OptionGroup::lookup_short_option(char name)
 {
   for (auto& item : m_items) {
     if (Option* option = dynamic_cast<Option*>(item.get())) {
-      if (option->short_name == name) {
+      if (option->get_short_name() == name) {
         return *option;
       }
+    } else if (ShortOptionAlias* alias = dynamic_cast<ShortOptionAlias*>(item.get());
+               alias && alias->get_name() == name) {
+      return alias->get_option();
     }
   }
   throw std::runtime_error("short option not found");
@@ -85,9 +93,12 @@ OptionGroup::lookup_long_option(std::string_view name)
 {
   for (auto& item : m_items) {
     if (Option* option = dynamic_cast<Option*>(item.get())) {
-      if (option->long_name == name) {
+      if (option->get_long_name() == name) {
         return *option;
       }
+    } else if (LongOptionAlias* alias = dynamic_cast<LongOptionAlias*>(item.get());
+               alias && alias->get_name() == name) {
+      return alias->get_option();
     }
   }
   throw std::runtime_error("long option not found");

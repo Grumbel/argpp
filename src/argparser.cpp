@@ -164,7 +164,7 @@ ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
 
     Option& option = option_group->lookup_long_option(opt);
     if (option.requires_argument()) {
-      option.call(opt_arg);
+      dynamic_cast<OptionWithArg&>(option).call(opt_arg);
     } else {
       throw std::runtime_error("error doesn't need arg");
     }
@@ -173,12 +173,12 @@ ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
   {
     Option& option = option_group->lookup_long_option(opt);
     if (!option.requires_argument()) {
-      option.call();
+      dynamic_cast<OptionWithoutArg&>(option).call();
     } else {
       if (!ctx.next()) {
         throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
       }
-      option.call(ctx.arg());
+      dynamic_cast<OptionWithArg&>(option).call(ctx.arg());
     }
   }
 }
@@ -194,16 +194,16 @@ ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
     char const opt = opts[opts_i];
     Option& option = option_group->lookup_short_option(opt);
     if (!option.requires_argument()) {
-      option.call();
+      dynamic_cast<OptionWithoutArg&>(option).call();
     } else {
       if (opts_i != opts.size() - 1) { // -fARG
-        option.call(opts.substr(opts_i + 1));
+        dynamic_cast<OptionWithArg&>(option).call(opts.substr(opts_i + 1));
         break;
       } else { // -f ARG
         if (!ctx.next()) {
           throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
         }
-        option.call(ctx.arg());
+        dynamic_cast<OptionWithArg&>(option).call(ctx.arg());
       }
     }
   }
@@ -221,16 +221,16 @@ ArgParser::print_help(std::ostream& out) const
     {
       if (Option* opt = dynamic_cast<Option*>(item.get())) {
         int width = 2; // add two leading space
-        if (opt->short_name) {
+        if (opt->get_short_name()) {
           width += 2; // "-a"
         }
 
-        if (!opt->long_name.empty()) {
-          width += static_cast<int>(opt->long_name.size()) + 2; // "--foobar"
+        if (!opt->get_long_name().empty()) {
+          width += static_cast<int>(opt->get_long_name().size()) + 2; // "--foobar"
         }
 
         if (opt->requires_argument()) {
-          width += static_cast<int>(opt->get_argument_name().size()) + 1;
+          width += static_cast<int>(dynamic_cast<OptionWithArg&>(*opt).get_argument_name().size()) + 1;
         }
 
         column_width = std::max(column_width, width);
@@ -253,7 +253,7 @@ ArgParser::print_help(std::ostream& out) const
   for (auto const& item : m_root.get_items())
   {
     if (TextItem const* text_item = dynamic_cast<TextItem*>(item.get())) {
-      pprint.print(text_item->text);
+      pprint.print(text_item->get_text());
     }
     // else if (opt.key == ArgumentType::PSEUDO)
     // {
@@ -265,22 +265,22 @@ ArgParser::print_help(std::ostream& out) const
         std::array<char, buffer_size> option   = { 0 };
         std::array<char, buffer_size> argument = { 0 };
 
-        if (opt->short_name)
+        if (opt->get_short_name())
         {
-          if (opt->long_name.empty()) {
-            snprintf(option.data(), option.size(), "-%c", opt->short_name);
+          if (opt->get_long_name().empty()) {
+            snprintf(option.data(), option.size(), "-%c", opt->get_short_name());
           } else {
-            snprintf(option.data(), option.size(), "-%c, --%s", opt->short_name, opt->long_name.c_str());
+            snprintf(option.data(), option.size(), "-%c, --%s", opt->get_short_name(), opt->get_long_name().c_str());
           }
         }
         else
         {
-          snprintf(option.data(), option.size(), "--%s", opt->long_name.c_str());
+          snprintf(option.data(), option.size(), "--%s", opt->get_long_name().c_str());
         }
 
         if (opt->requires_argument())
         {
-          snprintf(argument.data(), argument.size(), " %s", opt->get_argument_name().c_str());
+          snprintf(argument.data(), argument.size(), " %s", dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
         }
 
         std::string left_column("  ");

@@ -14,51 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ARGUMENT_HPP
-#define HEADER_ARGPARSER_ARGUMENT_HPP
-
-#include <string_view>
-
-#include "from_string.hpp"
+#ifndef HEADER_ARGPARSER_FROM_STRING_HPP
+#define HEADER_ARGPARSER_FROM_STRING_HPP
 
 namespace argparser {
 
-class ArgumentBase
+template<typename T> inline
+T from_string(std::string_view text)
 {
-public:
-  ArgumentBase(std::string name) :
-    m_name(name)
-  {}
-  virtual ~ArgumentBase() {}
+  return T(text);
+}
 
-  std::string const& get_name() const { return m_name; }
-
-private:
-  std::string m_name;
-};
-
-template<typename T = std::string_view>
-class Argument : public ArgumentBase
+template<> inline
+bool from_string<bool>(std::string_view text)
 {
-public:
-  Argument(std::string name) :
-    ArgumentBase(name),
-    m_convert_func(from_string<T>)
-  {}
-
-  template<typename F>
-  Argument(std::string name, F func) :
-    ArgumentBase(name),
-    m_convert_func(func)
-  {}
-
-  T convert(std::string_view text) {
-    return m_convert_func(text);
+  if (text == "0") {
+    return false;
+  } else {
+    return true;
   }
+}
 
-private:
-  std::function<T (std::string_view)> m_convert_func;
-};
+template<> inline
+int from_string<int>(std::string_view text)
+{
+  return std::stoi(std::string(text));
+}
+
+template<> inline
+float from_string<float>(std::string_view text)
+{
+  return std::stof(std::string(text));
+}
 
 } // namespace argparser
 

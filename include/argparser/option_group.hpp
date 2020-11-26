@@ -1,5 +1,5 @@
 // ArgParse - A Command Line Argument Parser for C++
-// Copyright (C) 2020 Ingo Ruhnke <grumbel@gmail.com>
+// Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 
+#include "option.hpp"
 #include "item.hpp"
 
 namespace argparser {
@@ -40,19 +41,17 @@ public:
 
   Option& add_option(std::unique_ptr<Option> option);
 
-  Option& add_option(char short_name, std::string long_name, std::string help)
+  OptionWithoutArg& add_option(char short_name, std::string long_name, std::string help)
   {
-    std::unique_ptr<Option> option(new Option(short_name, long_name, {}, help));
-    return add_option(std::move(option));
+    auto opt = std::make_unique<OptionWithoutArg>(short_name, long_name, help);
+    return dynamic_cast<OptionWithoutArg&>(add_option(std::move(opt)));
   }
 
   template<typename T>
-  Option& add_option(char short_name, std::string long_name, Argument<T> argument, std::string help)
+  TOptionWithArg<T>& add_option(char short_name, std::string long_name, Argument<T> argument, std::string help)
   {
-    return add_option(std::unique_ptr<Option>(new Option(
-                                                short_name, std::move(long_name),
-                                                std::make_unique<Argument<T>>(std::move(argument)),
-                                                help)));
+    auto opt = std::make_unique<TOptionWithArg<T>>(short_name, std::move(long_name), std::move(argument), std::move(help));
+    return dynamic_cast<TOptionWithArg<T>&>(add_option(std::move(opt)));
   }
 
   /*

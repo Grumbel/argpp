@@ -1,5 +1,5 @@
 // ArgParser
-// Copyright (C) 2015 Ingo Ruhnke <grumbel@gmail.com>
+// Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,19 +29,34 @@ int main(int argc, char** argv)
     argparser::ArgParser argp;
 
     argp.add_usage(argv[0], "bar [FILES]... [BLA]..");
-
     auto& opts = argp.options();
-    opts.add_group("Options:");
-    opts.add_text("Dies und das");
+
+    opts.add_text("Short description of what it does");
+    opts.add_newline();
+    opts.add_text("Lengthy description of what the program does. "
+                  "Lengthy description of what the program does. "
+                  "Lengthy description of what the program does. "
+                  "Lengthy description of what the program does. "
+                  "Lengthy description of what the program does. "
+                  "Lengthy description of what the program does. ");
     opts.add_newline();
 
+    opts.add_group("Options:");
     opts.add_option('v', "version", "Version");
-    opts.add_option('h', "help", "Help text").on([&]{ argp.print_help(); });
-    opts.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File").on_arg2(
-      std::function<void (std::filesystem::path const& path)>(
-        [](std::filesystem::path path) {
-          std::cout << "Got '" << path << "'" << std::endl;
-        }));
+    opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(); });
+
+    opts.add_newline();
+    opts.add_group("Options with arguments:");
+    opts.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File").then([](auto const& path) {
+      std::cout << "Got path: " << path << std::endl;
+    });
+    opts.add_option('n', "number", Argument<int>("FILE"), "Number").then([](int number) {
+      std::cout << "Got int: " << number << std::endl;
+    });
+
+    opts.add_option('t', "text", Argument("FILE"), "Number").then([](std::string_view text) {
+      std::cout << "Got text: " << text << std::endl;
+    });
 
     //auto& group = argp.add_group("Display Options:");
     //gcmd = add_command("install");
@@ -53,7 +68,7 @@ int main(int argc, char** argv)
     opts.add_option('s', "store", "Help text").store(var, 5);
     opts.add_option('S', "no-store", "Help text").store(var, -10);
     //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").append(&var);
-    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").on([](ParseContext& ctx, int value){
+    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").then([](ParseContext& ctx, int value){
     //ctx.raise_exception("illegal option");
     //});
 
@@ -61,7 +76,12 @@ int main(int argc, char** argv)
     //Argument<std::tuple<int, int, std::string>>();
     //Argument<std::vector<int>()
 
+    opts.add_newline();
+    opts.add_text("Copyright, author email and all that stuff");
+
+    std::cout << "----------------------------------------------" << std::endl;
     argp.parse_args(argc, argv);
+
     std::cout << "Store: " << var << std::endl;
 
     return 0;
