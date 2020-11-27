@@ -48,7 +48,9 @@ int main(int argc, char** argv)
     opts.add_alias('H', opts.lookup_short_option('h'));
     opts.add_alias("hilfe", opts.lookup_long_option("help"));
     opts.add_option({}, "long-only", Argument("ARG"), "Blabla");
-    opts.add_option('s', {}, Argument("ARG"), "Blabla");
+
+    std::string stringvar;
+    opts.add_option('s', {}, Argument("ARG"), "Blabla").store(stringvar);
 
     opts.add_newline();
     opts.add_group("Options with arguments:");
@@ -133,6 +135,7 @@ int main(int argc, char** argv)
 
     std::cout << "Store: " << var << std::endl;
     std::cout << "Verbose: " << verbose << std::endl;
+    std::cout << "StringVar: " << stringvar << std::endl;
 
     return 0;
   }

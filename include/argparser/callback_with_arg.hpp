@@ -45,7 +45,8 @@ public:
     m_callback = func;
   }
 
-  void store(T& place) {
+  template<typename P>
+  void store(P& place) {
     then([&place](T&& value){
       place = std::move(value);
     });
