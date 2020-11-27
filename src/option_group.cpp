@@ -29,6 +29,7 @@ namespace argparser {
 void
 OptionGroup::add_group(std::string name)
 {
+  add_newline();
   m_items.push_back(std::make_unique<TextItem>(std::move(name)));
 }
 

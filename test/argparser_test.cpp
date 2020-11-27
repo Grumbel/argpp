@@ -16,6 +16,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <optional>
 
 #include <argparser/argparser.hpp>
 
@@ -38,7 +39,6 @@ int main(int argc, char** argv)
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. ");
-    argp.add_newline();
 
     argp.add_group("Options:");
     argp.add_option('v', "version", "Version");
@@ -48,10 +48,9 @@ int main(int argc, char** argv)
     argp.add_alias("hilfe", argp.lookup_long_option("help"));
     argp.add_option({}, "long-only", Argument("ARG"), "Blabla");
 
-    std::string stringvar;
+    std::optional<std::string> stringvar;
     argp.add_option('s', {}, Argument("ARG"), "Blabla").store(stringvar);
 
-    argp.add_newline();
     argp.add_group("Options with arguments:");
     argp.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File").then([](auto const& path) {
       std::cout << "Got path: " << path << std::endl;
@@ -82,18 +81,15 @@ int main(int argc, char** argv)
     //Argument<std::tuple<int, int, std::string>>();
     //Argument<std::vector<int>()
 
-    argp.add_newline();
     argp.add_group("Commands:");
     auto& install_cmd = argp.add_command("install", "Install stuff");
     auto& install_opts = install_cmd.get_options();
     install_opts.add_text("Install stuff");
-    install_opts.add_newline();
 
     install_opts.add_group("Options:");
     install_opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(install_cmd); });
     install_opts.add_option('n', "number", "Blabla");
     install_opts.add_option('d', "device", "Blabla");
-    install_opts.add_newline();
 
     install_opts.add_group("Positional arguments:");
     install_opts.add_positional(Argument("PACKAGE"), "Package to install").then([](std::string_view text){
@@ -134,7 +130,7 @@ int main(int argc, char** argv)
 
     std::cout << "Store: " << var << std::endl;
     std::cout << "Verbose: " << verbose << std::endl;
-    std::cout << "StringVar: " << stringvar << std::endl;
+    std::cout << "StringVar: " << (stringvar ? *stringvar : "<not set>") << std::endl;
 
     return 0;
   }
