@@ -20,6 +20,11 @@
 #include <string>
 #include <string_view>
 
+#include <fmt/format.h>
+#include <strut/from_string.hpp>
+
+#include "error.hpp"
+
 namespace argparser {
 
 template<typename T> inline
@@ -31,23 +36,34 @@ T from_string(std::string_view text)
 template<> inline
 bool from_string<bool>(std::string_view text)
 {
-  if (text == "0") {
-    return false;
+  bool value;
+  if (!strut::from_string(text, value)) {
+    throw Error(fmt::format("failed to convert \"{}\" to bool", text));
   } else {
-    return true;
+    return value;
   }
 }
 
 template<> inline
 int from_string<int>(std::string_view text)
 {
-  return std::stoi(std::string(text));
+  int value;
+  if (!strut::from_string(text, value)) {
+    throw Error(fmt::format("failed to convert \"{}\" to int", text));
+  } else {
+    return value;
+  }
 }
 
 template<> inline
 float from_string<float>(std::string_view text)
 {
-  return std::stof(std::string(text));
+  float value;
+  if (!strut::from_string(text, value)) {
+    throw Error(fmt::format("failed to convert \"{}\" to float", text));
+  } else {
+    return value;
+  }
 }
 
 } // namespace argparser
