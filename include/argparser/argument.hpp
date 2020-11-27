@@ -28,9 +28,9 @@ class ArgumentBase
 {
 public:
   ArgumentBase(std::string name) :
-    m_name(name)
+    m_name(std::move(name))
   {}
-  virtual ~ArgumentBase() {}
+  virtual ~ArgumentBase() = default;
 
   std::string const& get_name() const { return m_name; }
 
@@ -42,14 +42,14 @@ template<typename T = std::string_view>
 class Argument : public ArgumentBase
 {
 public:
-  Argument(std::string name) :
-    ArgumentBase(name),
+  Argument(std::string name) : // NOLINT
+    ArgumentBase(std::move(name)),
     m_convert_func(from_string<T>)
   {}
 
   template<typename F>
-  Argument(std::string name, F func) :
-    ArgumentBase(name),
+  Argument(std::string name, F func) : // NOLINT
+    ArgumentBase(std::move(name)),
     m_convert_func(func)
   {}
 

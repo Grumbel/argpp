@@ -16,7 +16,8 @@ Checks: >
   -readability-magic-numbers,
   -readability-redundant-member-init,
   -readability-convert-member-functions-to-static,
+  -readability-redundant-access-specifiers,
 WarningsAsErrors: '*'
-HeaderFilterRegex: 'src/.*hpp'
+HeaderFilterRegex: '.*hpp'
 AnalyzeTemporaryDtors: true
 ...

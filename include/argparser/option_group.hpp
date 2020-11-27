@@ -36,7 +36,7 @@ class OptionGroup
 {
 public:
   OptionGroup() : m_items() {}
-  ~OptionGroup() {}
+  ~OptionGroup() = default;
 
   void add_text(std::string text);
   void add_newline();
@@ -75,7 +75,7 @@ public:
 
   OptionWithoutArg& add_option(char short_name, std::string long_name, std::string help)
   {
-    auto opt = std::make_unique<OptionWithoutArg>(short_name, long_name, help);
+    auto opt = std::make_unique<OptionWithoutArg>(short_name, std::move(long_name), std::move(help));
     return dynamic_cast<OptionWithoutArg&>(add_option(std::move(opt)));
   }
 

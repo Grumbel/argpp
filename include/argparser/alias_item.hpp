@@ -25,7 +25,7 @@ class LongOptionAlias : public Item
 {
 public:
   LongOptionAlias(std::string name, Option& option) :
-    m_name(name),
+    m_name(std::move(name)),
     m_option(option)
   {}
 

@@ -26,12 +26,11 @@ class CallbackWithArg
 {
 public:
   CallbackWithArg(Argument<T> argument) :
-    m_argument(argument),
+    m_argument(std::move(argument)),
     m_callback()
   {}
 
-  virtual ~CallbackWithArg()
-  {}
+  virtual ~CallbackWithArg() = default;
 
   void call(std::string_view text) {
     if (m_callback) {

@@ -24,8 +24,8 @@ namespace argparser {
 class PositionalItem : public Item
 {
 public:
-  PositionalItem() {}
-  virtual ~PositionalItem() {}
+  PositionalItem() = default;
+  ~PositionalItem() override = default;
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;

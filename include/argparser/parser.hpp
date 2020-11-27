@@ -38,12 +38,12 @@ public:
   void add_program(std::string_view program);
 
   void print_help(std::ostream& out = std::cout) const;
-  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out = std::cout) const;
   void print_help(CommandItem const& command_item, std::ostream& out = std::cout) const;
 
   void parse_args(int argc, char** argv);
 
 private:
+  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out = std::cout) const;
   void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
 
   void parse_args(ParseContext& ctx, OptionGroup& group);
@@ -53,10 +53,6 @@ private:
 
 private:
   std::string m_program;
-
-private:
-  Parser(const Parser&) = delete;
-  Parser& operator=(const Parser&) = delete;
 };
 
 } // namespace argparser

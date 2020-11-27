@@ -28,7 +28,7 @@ namespace argparser {
 class Item
 {
 public:
-  virtual ~Item() {}
+  virtual ~Item() = default;
 };
 
 } // namespace argparser

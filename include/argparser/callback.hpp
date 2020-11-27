@@ -29,8 +29,7 @@ public:
   {
   }
 
-  virtual ~Callback()
-  {}
+  virtual ~Callback() = default;
 
   void call() {
     if (m_callback) {
@@ -39,7 +38,7 @@ public:
   }
 
   void then(std::function<void ()> cb) {
-    m_callback = cb;
+    m_callback = std::move(cb);
   }
 
   template<typename T>

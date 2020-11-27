@@ -24,7 +24,7 @@ namespace argparser {
 class RestItem : public Item
 {
 public:
-  RestItem() {}
+  RestItem() = default;
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;

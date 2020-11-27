@@ -32,8 +32,8 @@ class Option : public Item
 public:
   Option(char short_name, std::string long_name, std::string help) :
     m_short_name(short_name),
-    m_long_name(long_name),
-    m_help(help)
+    m_long_name(std::move(long_name)),
+    m_help(std::move(help))
   {}
 
   std::string const& get_help() const { return m_help; }
@@ -54,7 +54,7 @@ class OptionWithoutArg : public Option,
 {
 public:
   OptionWithoutArg(char short_name, std::string long_name, std::string help) :
-    Option(short_name, long_name, help)
+    Option(short_name, std::move(long_name), std::move(help))
   {}
 
   bool requires_argument() const override { return false; }
@@ -73,8 +73,8 @@ class TOptionWithArg : public OptionWithArg,
                        public CallbackWithArg<T>
 {
 public:
-  TOptionWithArg(char short_name, std::string long_name, Argument<T> argument, std::string help) :
-    OptionWithArg(short_name, long_name, help),
+  TOptionWithArg(char short_name, std::string long_name, Argument<T> argument, std::string help) : // NOLINT
+    OptionWithArg(short_name, std::move(long_name), std::move(help)),
     CallbackWithArg<T>(argument),
     m_argument(std::move(argument))
   {}
