@@ -84,8 +84,7 @@ private:
 };
 
 Parser::Parser() :
-  m_program(),
-  m_root()
+  m_program()
 {
 }
 
@@ -95,17 +94,11 @@ Parser::add_program(std::string_view program)
   m_program = program;
 }
 
-OptionGroup&
-Parser::options()
-{
-  return m_root;
-}
-
 void
 Parser::parse_args(int argc, char** argv)
 {
   ParseContext ctx(argc, argv);
-  parse_args(ctx, m_root);
+  parse_args(ctx, *this);
 }
 
 void
@@ -242,15 +235,15 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
     }
   };
 
-  if (!m_root.has_commands())
+  if (!has_commands())
   {
     out << "Usage: " << m_program;
-    print_group(m_root);
+    print_group(*this);
   }
   else
   {
     bool is_first = true;
-    for (auto const& item : m_root.get_items()) {
+    for (auto const& item : get_items()) {
       if (auto* command_item = dynamic_cast<CommandItem*>(item.get())) {
         if (current_command_item != nullptr &&
             current_command_item != command_item) {
@@ -266,7 +259,7 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
 
         out << m_program;
 
-        if (m_root.has_options()) {
+        if (has_options()) {
           out << " [OPTION]...";
         }
 
@@ -376,7 +369,7 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
 void
 Parser::print_help(std::ostream& out) const
 {
-  print_help(m_root, nullptr, out);
+  print_help(*this, nullptr, out);
 }
 
 } // namespace argparser

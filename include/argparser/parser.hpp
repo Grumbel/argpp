@@ -29,15 +29,13 @@
 namespace argparser {
 
 class ParseContext;
-class OptionGroup;
 
-class Parser
+class Parser : public OptionGroup
 {
 public:
   Parser();
 
   void add_program(std::string_view program);
-  OptionGroup& options();
 
   void print_help(std::ostream& out = std::cout) const;
   void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out = std::cout) const;
@@ -55,7 +53,6 @@ private:
 
 private:
   std::string m_program;
-  OptionGroup m_root;
 
 private:
   Parser(const Parser&) = delete;
