@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ARGPARSER_HPP
-#define HEADER_ARGPARSER_ARGPARSER_HPP
-
-#include "argument.hpp"
-#include "command_item.hpp"
-#include "option_group.hpp"
-#include "parser.hpp"
+#ifndef HEADER_ARGPARSER_FWD_HPP
+#define HEADER_ARGPARSER_FWD_HPP
 
 namespace argparser {
 
+class Parser;
 using ArgParser = Parser;
+class Item;
+class Option;
+class CommandItem;
+class OptionGroup;
 
 } // namespace argparser
 

@@ -21,7 +21,7 @@
 #include <span>
 #include <string_view>
 
-#include "argparser.hpp"
+#include "parser.hpp"
 #include "command_item.hpp"
 #include "option_group.hpp"
 #include "positional_item.hpp"
@@ -83,33 +83,33 @@ private:
   int m_positional_counter;
 };
 
-ArgParser::ArgParser() :
+Parser::Parser() :
   m_program(),
   m_root()
 {
 }
 
 void
-ArgParser::add_program(std::string_view program)
+Parser::add_program(std::string_view program)
 {
   m_program = program;
 }
 
 OptionGroup&
-ArgParser::options()
+Parser::options()
 {
   return m_root;
 }
 
 void
-ArgParser::parse_args(int argc, char** argv)
+Parser::parse_args(int argc, char** argv)
 {
   ParseContext ctx(argc, argv);
   parse_args(ctx, m_root);
 }
 
 void
-ArgParser::parse_args(ParseContext& ctx, OptionGroup& group)
+Parser::parse_args(ParseContext& ctx, OptionGroup& group)
 {
   while (ctx.next())
   {
@@ -147,7 +147,7 @@ ArgParser::parse_args(ParseContext& ctx, OptionGroup& group)
 }
 
 void
-ArgParser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
+Parser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
 {
   if (group.has_commands()) {
     CommandItem& command_item = group.lookup_command(arg);
@@ -167,7 +167,7 @@ ArgParser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_v
 }
 
 void
-ArgParser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
+Parser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
 {
   std::string_view opt = arg.substr(2);
   std::string::size_type const equal_pos = opt.find('=');
@@ -198,7 +198,7 @@ ArgParser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_
 }
 
 void
-ArgParser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
+Parser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
 {
   std::string_view const opts = arg.substr(1);
 
@@ -222,7 +222,7 @@ ArgParser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string
 }
 
 void
-ArgParser::print_usage(CommandItem const* current_command_item, std::ostream& out) const
+Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) const
 {
   auto print_group = [&](OptionGroup const& group) {
     if (group.has_options()) {
@@ -282,13 +282,13 @@ ArgParser::print_usage(CommandItem const* current_command_item, std::ostream& ou
 }
 
 void
-ArgParser::print_help(CommandItem const& command_item, std::ostream& out) const
+Parser::print_help(CommandItem const& command_item, std::ostream& out) const
 {
   print_help(command_item.get_options(), &command_item, out);
 }
 
 void
-ArgParser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out) const
+Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out) const
 {
   const int terminal_width = std::min(get_terminal_width(), 120);
   const int column_min_width = 8;
@@ -374,7 +374,7 @@ ArgParser::print_help(OptionGroup const& group, CommandItem const* current_comma
 }
 
 void
-ArgParser::print_help(std::ostream& out) const
+Parser::print_help(std::ostream& out) const
 {
   print_help(m_root, nullptr, out);
 }

@@ -18,9 +18,6 @@
 #include <iostream>
 
 #include <argparser/argparser.hpp>
-#include <argparser/argument.hpp>
-#include <argparser/command_item.hpp>
-#include <argparser/option_group.hpp>
 
 int main(int argc, char** argv)
 {
@@ -48,6 +45,8 @@ int main(int argc, char** argv)
     opts.add_option('v', "version", "Version");
     opts.add_option('V', "verbose", "Version").increment(verbose);
     opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(); });
+    opts.add_alias('H', opts.lookup_short_option('h'));
+    opts.add_alias("hilfe", opts.lookup_long_option("help"));
     opts.add_option({}, "long-only", Argument("ARG"), "Blabla");
     opts.add_option('s', {}, Argument("ARG"), "Blabla");
 

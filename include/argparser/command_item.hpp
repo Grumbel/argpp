@@ -17,7 +17,10 @@
 #ifndef HEADER_ARGPARSER_COMMAND_ITEM_HPP
 #define HEADER_ARGPARSER_COMMAND_ITEM_HPP
 
+#include <string>
+
 #include "item.hpp"
+#include "option_group.hpp"
 
 namespace argparser {
 
