@@ -26,6 +26,8 @@ int main(int argc, char** argv)
 {
   try
   {
+    int verbose = 0;
+
     using argparser::Argument;
     argparser::ArgParser argp;
 
@@ -44,7 +46,10 @@ int main(int argc, char** argv)
 
     opts.add_group("Options:");
     opts.add_option('v', "version", "Version");
+    opts.add_option('V', "verbose", "Version").increment(verbose);
     opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(); });
+    opts.add_option({}, "long-only", Argument("ARG"), "Blabla");
+    opts.add_option('s', {}, Argument("ARG"), "Blabla");
 
     opts.add_newline();
     opts.add_group("Options with arguments:");
@@ -128,6 +133,7 @@ int main(int argc, char** argv)
     argp.parse_args(argc, argv);
 
     std::cout << "Store: " << var << std::endl;
+    std::cout << "Verbose: " << verbose << std::endl;
 
     return 0;
   }

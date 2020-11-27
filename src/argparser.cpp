@@ -354,7 +354,9 @@ ArgParser::print_help(OptionGroup const& group, CommandItem const* current_comma
       }
 
       if (opt->requires_argument()) {
-        snprintf(argument.data(), argument.size(), " %s", dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
+        snprintf(argument.data(), argument.size(), "%c%s",
+                 !opt->get_long_name().empty() ? '=' : ' ',
+                 dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
       }
 
       std::string left_column("  ");
