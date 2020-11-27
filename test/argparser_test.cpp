@@ -94,7 +94,7 @@ int main(int argc, char** argv)
     opts.add_positional(Argument("FLUB"), "File to load").then([](std::string_view text){
       std::cout << "flub: " << text << std::endl;
     });
-    opts.add_positional(Argument<std::filesystem::path>("BLOB"), "Output file").then([](std::filesystem::path text){
+    opts.add_positional(Argument<std::filesystem::path>("BLOB"), "Output file").then([](std::filesystem::path const& text){
       std::cout << "blob: " << text << std::endl;
     });
     opts.add_positional(Argument<int>("NUMBER"), "a number file").then([](int number){

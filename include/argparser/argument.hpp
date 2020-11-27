@@ -61,6 +61,9 @@ private:
   std::function<T (std::string_view)> m_convert_func;
 };
 
+template<typename F>
+Argument(std::string name, F func) -> Argument<F>;
+
 } // namespace argparser
 
 #endif

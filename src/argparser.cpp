@@ -235,7 +235,7 @@ ArgParser::print_help(std::ostream& out) const
   { // Calculate left column width
     for (auto const& item : m_root.get_items())
     {
-      if (Option* opt = dynamic_cast<Option*>(item.get())) {
+      if (auto* opt = dynamic_cast<Option*>(item.get())) {
         int width = 2; // add two leading space
         if (opt->get_short_name()) {
           width += 2; // "-a"
@@ -268,13 +268,13 @@ ArgParser::print_help(std::ostream& out) const
 
   for (auto const& item : m_root.get_items())
   {
-    if (TextItem const* text_item = dynamic_cast<TextItem*>(item.get())) {
+    if (auto const* text_item = dynamic_cast<TextItem*>(item.get())) {
       pprint.print(text_item->get_text());
-    } else if (PseudoItem* pseudo_item = dynamic_cast<PseudoItem*>(item.get())) {
+    } else if (auto* pseudo_item = dynamic_cast<PseudoItem*>(item.get())) {
       pprint.print(std::string(column_width, ' '), pseudo_item->get_name(), pseudo_item->get_help());
-    } else if (PositionalItem* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
+    } else if (auto* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
       pprint.print(std::string(column_width, ' '), "  " + positional_item->get_name(), positional_item->get_help());
-    } else if (Option* opt = dynamic_cast<Option*>(item.get())) {
+    } else if (auto* opt = dynamic_cast<Option*>(item.get())) {
       constexpr size_t buffer_size = 256;
       std::array<char, buffer_size> option   = { 0 };
       std::array<char, buffer_size> argument = { 0 };
@@ -299,7 +299,7 @@ ArgParser::print_help(std::ostream& out) const
       left_column += " ";
 
       pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
-    } else if (CommandItem* command_item = dynamic_cast<CommandItem*>(item.get())) {
+    } else if (auto* command_item = dynamic_cast<CommandItem*>(item.get())) {
       pprint.print(std::string(column_width, ' '), "  " + command_item->get_name(), command_item->get_help());
     } else {
       // unhandled items

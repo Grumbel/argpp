@@ -52,7 +52,7 @@ OptionGroup::add_pseudo(std::string name, std::string help)
 void
 OptionGroup::add_rest(std::string name)
 {
-  m_items.push_back(std::make_unique<RestItem>(name));
+  m_items.push_back(std::make_unique<RestItem>(std::move(name)));
 }
 
 Option&
@@ -75,7 +75,7 @@ OptionGroup::add_command(std::string name, std::string help)
 void
 OptionGroup::add_alias(std::string name, Option& option)
 {
-  m_items.push_back(std::make_unique<LongOptionAlias>(name, option));
+  m_items.push_back(std::make_unique<LongOptionAlias>(std::move(name), option));
 }
 
 void
@@ -89,7 +89,7 @@ OptionGroup::lookup_command(std::string_view name)
 {
   for (auto& item : m_items) {
     Item* ptr = item.get();
-    if (CommandItem* command_item = dynamic_cast<CommandItem*>(ptr)) {
+    if (auto* command_item = dynamic_cast<CommandItem*>(ptr)) {
       if (command_item->get_name() == name) {
         return *command_item;
       }
@@ -104,7 +104,7 @@ OptionGroup::lookup_positional(int i)
   int positional_count = 0;
   for (auto& item : m_items) {
     Item* ptr = item.get();
-    if (PositionalItem* positional_item = dynamic_cast<PositionalItem*>(ptr)) {
+    if (auto* positional_item = dynamic_cast<PositionalItem*>(ptr)) {
       if (positional_count == i) {
         return *positional_item;
       }
@@ -118,11 +118,11 @@ Option&
 OptionGroup::lookup_short_option(char name)
 {
   for (auto& item : m_items) {
-    if (Option* option = dynamic_cast<Option*>(item.get())) {
+    if (auto* option = dynamic_cast<Option*>(item.get())) {
       if (option->get_short_name() == name) {
         return *option;
       }
-    } else if (ShortOptionAlias* alias = dynamic_cast<ShortOptionAlias*>(item.get());
+    } else if (auto* alias = dynamic_cast<ShortOptionAlias*>(item.get());
                alias && alias->get_name() == name) {
       return alias->get_option();
     }
@@ -134,11 +134,11 @@ Option&
 OptionGroup::lookup_long_option(std::string_view name)
 {
   for (auto& item : m_items) {
-    if (Option* option = dynamic_cast<Option*>(item.get())) {
+    if (auto* option = dynamic_cast<Option*>(item.get())) {
       if (option->get_long_name() == name) {
         return *option;
       }
-    } else if (LongOptionAlias* alias = dynamic_cast<LongOptionAlias*>(item.get());
+    } else if (auto* alias = dynamic_cast<LongOptionAlias*>(item.get());
                alias && alias->get_name() == name) {
       return alias->get_option();
     }
