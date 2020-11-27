@@ -74,6 +74,13 @@ public:
     });
   }
 
+  template<typename T>
+  void append(T& place, T const value) {
+    then([&place, value = std::move(value)]{
+      place.emplace_back(std::move(value));
+    });
+  }
+
 private:
   std::function<void ()> m_callback;
 };

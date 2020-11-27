@@ -85,16 +85,14 @@ private:
 
 ArgParser::ArgParser() :
   m_program(),
-  m_usage(),
   m_root()
 {
 }
 
 void
-ArgParser::add_usage(std::string_view program, std::string_view usage)
+ArgParser::add_program(std::string_view program)
 {
   m_program = program;
-  m_usage = usage;
 }
 
 OptionGroup&
@@ -107,33 +105,38 @@ void
 ArgParser::parse_args(int argc, char** argv)
 {
   ParseContext ctx(argc, argv);
+  parse_args(ctx, m_root);
+}
 
+void
+ArgParser::parse_args(ParseContext& ctx, OptionGroup& group)
+{
   while (ctx.next())
   {
     std::string_view const arg = ctx.arg();
 
     if (arg.empty() || arg[0] != '-') // rest
     {
-      parse_non_option(ctx, arg);
+      parse_non_option(ctx, group, arg);
     }
     else if (arg[1] == '-') // --...
     {
       if (arg.size() == 2) { // --
         // Got a '--' treat everything after this as rest
         while (ctx.next()) {
-          parse_non_option(ctx, arg);
+          parse_non_option(ctx, group, arg);
         }
         break;
       } else {
-        parse_long_option(ctx, arg);
+        parse_long_option(ctx, group, arg);
       }
     }
     else // short option
     {
       if (arg.size() == 1) { // -
-        parse_non_option(ctx, arg);
+        parse_non_option(ctx, group, arg);
       } else {
-        parse_short_option(ctx, arg);
+        parse_short_option(ctx, group, arg);
       }
     }
   }
@@ -144,33 +147,28 @@ ArgParser::parse_args(int argc, char** argv)
 }
 
 void
-ArgParser::parse_non_option(ParseContext& ctx, std::string_view arg)
+ArgParser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
 {
-  OptionGroup* option_group = &m_root;
-
-  /*
-  try {
-    CommandItem& command_item = option_group->lookup_command(arg);
-    // FIXME: recursive option parse
-    return;
-  } catch (...) {
-  }
-  */
-
-  try {
-    PositionalItem& item = option_group->lookup_positional(ctx.get_positional_counter());
-    item.call(arg); // FIXME: throw something useful when the conversion fails
-    ctx.incr_positional_counter();
-  } catch (...) {
-    throw std::runtime_error(fmt::format("unknown item in position {}: {}", ctx.get_positional_counter(), arg));
+  if (group.has_commands()) {
+    CommandItem& command_item = group.lookup_command(arg);
+    parse_args(ctx, command_item.get_options());
+  } else {
+    if (group.has_positional()) {
+      try {
+        PositionalItem& item = group.lookup_positional(ctx.get_positional_counter());
+        item.call(arg); // FIXME: throw something useful when the conversion fails
+        ctx.incr_positional_counter();
+      } catch (...) {
+        throw std::runtime_error(fmt::format("unknown item in position {}: {}", ctx.get_positional_counter(), arg));
+      }
+    }
+    //if (group.has_positional()) {
   }
 }
 
 void
-ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
+ArgParser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
 {
-  OptionGroup* option_group = &m_root;
-
   std::string_view opt = arg.substr(2);
   std::string::size_type const equal_pos = opt.find('=');
   if (equal_pos != std::string::npos) // --long-opt=with-arg
@@ -178,7 +176,7 @@ ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
     std::string_view opt_arg = opt.substr(equal_pos + 1);
     opt = opt.substr(0, equal_pos);
 
-    Option& option = option_group->lookup_long_option(opt);
+    Option& option = group.lookup_long_option(opt);
     if (option.requires_argument()) {
       dynamic_cast<OptionWithArg&>(option).call(opt_arg);
     } else {
@@ -187,7 +185,7 @@ ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
   }
   else
   {
-    Option& option = option_group->lookup_long_option(opt);
+    Option& option = group.lookup_long_option(opt);
     if (!option.requires_argument()) {
       dynamic_cast<OptionWithoutArg&>(option).call();
     } else {
@@ -200,15 +198,13 @@ ArgParser::parse_long_option(ParseContext& ctx, std::string_view arg)
 }
 
 void
-ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
+ArgParser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
 {
-  OptionGroup* option_group = &m_root;
-
   std::string_view const opts = arg.substr(1);
 
   for (size_t opts_i = 0; opts_i < opts.size(); ++opts_i) {
     char const opt = opts[opts_i];
-    Option& option = option_group->lookup_short_option(opt);
+    Option& option = group.lookup_short_option(opt);
     if (!option.requires_argument()) {
       dynamic_cast<OptionWithoutArg&>(option).call();
     } else {
@@ -226,14 +222,80 @@ ArgParser::parse_short_option(ParseContext& ctx, std::string_view arg)
 }
 
 void
-ArgParser::print_help(std::ostream& out) const
+ArgParser::print_usage(CommandItem const* current_command_item, std::ostream& out) const
+{
+  auto print_group = [&](OptionGroup const& group) {
+    if (group.has_options()) {
+      out << " [OPTION]...";
+    }
+
+    for (auto const& item : group.get_items()) {
+      if (auto* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
+        out << " " << positional_item->get_name();
+      }
+    }
+
+    for (auto const& item : group.get_items()) {
+      if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
+        out << " " << rest_item->get_name();
+      }
+    }
+  };
+
+  if (!m_root.has_commands())
+  {
+    out << "Usage: " << m_program;
+    print_group(m_root);
+  }
+  else
+  {
+    bool is_first = true;
+    for (auto const& item : m_root.get_items()) {
+      if (auto* command_item = dynamic_cast<CommandItem*>(item.get())) {
+        if (current_command_item != nullptr &&
+            current_command_item != command_item) {
+          continue;
+        }
+
+        if (is_first) {
+          is_first = false;
+          out << "Usage: ";
+        } else {
+          out << "       ";
+        }
+
+        out << m_program;
+
+        if (m_root.has_options()) {
+          out << " [OPTION]...";
+        }
+
+        out << " " << command_item->get_name();
+
+        print_group(command_item->get_options());
+        out << std::endl;
+      }
+    }
+  }
+
+  out << std::endl;
+}
+
+void
+ArgParser::print_help(CommandItem const& command_item, std::ostream& out) const
+{
+  print_help(command_item.get_options(), &command_item, out);
+}
+
+void
+ArgParser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out) const
 {
   const int terminal_width = std::min(get_terminal_width(), 120);
   const int column_min_width = 8;
   int column_width = column_min_width;
 
   { // Calculate left column width
-    for (auto const& item : m_root.get_items())
+    for (auto const& item : group.get_items())
     {
       if (auto* opt = dynamic_cast<Option*>(item.get())) {
         int width = 2; // add two leading space
@@ -264,9 +326,9 @@ ArgParser::print_help(std::ostream& out) const
 
   PrettyPrinter pprint(terminal_width); // -1 so we have a whitespace on the right side
 
-  out << "Usage: " << m_program << " " <<  m_usage << '\n';
+  print_usage(current_command_item, out);
 
-  for (auto const& item : m_root.get_items())
+  for (auto const& item : group.get_items())
   {
     if (auto const* text_item = dynamic_cast<TextItem*>(item.get())) {
       pprint.print(text_item->get_text());
@@ -274,6 +336,8 @@ ArgParser::print_help(std::ostream& out) const
       pprint.print(std::string(column_width, ' '), pseudo_item->get_name(), pseudo_item->get_help());
     } else if (auto* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
       pprint.print(std::string(column_width, ' '), "  " + positional_item->get_name(), positional_item->get_help());
+    } else if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
+      pprint.print(std::string(column_width, ' '), "  " + rest_item->get_name(), rest_item->get_help());
     } else if (auto* opt = dynamic_cast<Option*>(item.get())) {
       constexpr size_t buffer_size = 256;
       std::array<char, buffer_size> option   = { 0 };
@@ -305,6 +369,12 @@ ArgParser::print_help(std::ostream& out) const
       // unhandled items
     }
   }
+}
+
+void
+ArgParser::print_help(std::ostream& out) const
+{
+  print_help(m_root, nullptr, out);
 }
 
 } // namespace argparser

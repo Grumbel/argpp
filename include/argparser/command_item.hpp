@@ -33,6 +33,7 @@ public:
   std::string get_name() const { return m_name; }
   std::string get_help() const { return m_help; }
   OptionGroup& get_options() { return m_options; }
+  OptionGroup const& get_options() const { return m_options; }
 
 private:
   std::string m_name;

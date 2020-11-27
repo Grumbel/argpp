@@ -23,6 +23,7 @@
 
 #include "option.hpp"
 #include "positional_item.hpp"
+#include "rest_item.hpp"
 
 namespace argparser {
 
@@ -45,7 +46,7 @@ public:
   void add_alias(std::string name, Option& option);
   void add_alias(char name, Option& option);
 
-  OptionGroup& add_command(std::string name, std::string help);
+  CommandItem& add_command(std::string name, std::string help);
 
   template<typename T>
   TPositionalItem<T>& add_positional(Argument<T> argument, std::string help = {})
@@ -56,7 +57,18 @@ public:
     return positional_item_ref;
   }
 
-  void add_rest(std::string name);
+  template<typename T>
+  TRestItem<T>& add_rest(Argument<T> argument, std::string help = {})
+  {
+    if (has_rest()) {
+      throw std::runtime_error("only one rest argument ollowed");
+    }
+
+    auto rest_item = std::make_unique<TRestItem<T>>(std::move(argument), std::move(help));
+    auto& rest_item_ref = *rest_item;
+    m_items.emplace_back(std::move(rest_item));
+    return rest_item_ref;
+  }
 
   Option& add_option(std::unique_ptr<Option> option);
 
@@ -95,6 +107,11 @@ public:
   PositionalItem& lookup_positional(int i);
   Option& lookup_short_option(char name);
   Option& lookup_long_option(std::string_view name);
+
+  bool has_options() const;
+  bool has_commands() const;
+  bool has_positional() const;
+  bool has_rest() const;
 
   std::vector<std::unique_ptr<Item> > const& get_items() const { return m_items; }
 

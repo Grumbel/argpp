@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
-#define HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
+#ifndef HEADER_ARGPARSER_REST_ITEM_HPP
+#define HEADER_ARGPARSER_REST_ITEM_HPP
+
+#include "item.hpp"
 
 namespace argparser {
 
-class PositionalItem : public Item
+class RestItem : public Item
 {
 public:
-  PositionalItem() {}
+  RestItem() {}
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;
@@ -30,10 +32,10 @@ public:
 };
 
 template<typename T>
-class TPositionalItem : public PositionalItem
+class TRestItem : public RestItem
 {
 public:
-  TPositionalItem(Argument<T> argument, std::string help) :
+  TRestItem(Argument<T> argument, std::string help) :
     m_argument(argument),
     m_help(std::move(help)),
     m_callback()
@@ -65,7 +67,7 @@ private:
   std::function<void (T)> m_callback;
 };
 
-} // namespace argparser
+} //namespace argparser
 
 #endif
 

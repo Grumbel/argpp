@@ -19,6 +19,7 @@
 
 #include <argparser/argparser.hpp>
 #include <argparser/argument.hpp>
+#include <argparser/command_item.hpp>
 #include <argparser/option_group.hpp>
 
 int main(int argc, char** argv)
@@ -28,7 +29,7 @@ int main(int argc, char** argv)
     using argparser::Argument;
     argparser::ArgParser argp;
 
-    argp.add_usage(argv[0], "bar [FILES]... [BLA]..");
+    argp.add_program(argv[0]);
     auto& opts = argp.options();
 
     opts.add_text("Short description of what it does");
@@ -76,19 +77,33 @@ int main(int argc, char** argv)
     //Argument<std::tuple<int, int, std::string>>();
     //Argument<std::vector<int>()
 
-    /*
     opts.add_newline();
     opts.add_group("Commands:");
-    auto& install_opts = opts.add_command("install", "Install stuff");
+    auto& install_cmd = opts.add_command("install", "Install stuff");
+    auto& install_opts = install_cmd.get_options();
+    install_opts.add_text("Install stuff");
+    install_opts.add_newline();
+
+    install_opts.add_group("Options:");
+    install_opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(install_cmd); });
     install_opts.add_option('n', "number", "Blabla");
     install_opts.add_option('d', "device", "Blabla");
+    install_opts.add_newline();
 
-    auto& search_opts = opts.add_command("search", "Search stuff");
+    install_opts.add_group("Positional arguments:");
+    install_opts.add_positional(Argument("PACKAGE"), "Package to install").then([](std::string_view text){
+      std::cout << "Installing package: " << text << "\n";
+    });
+
+    auto& search_cmd = opts.add_command("search", "Search stuff");
+    auto& search_opts = search_cmd.get_options();
+    search_opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(search_cmd); });
     search_opts.add_option('n', "number", "Blabla");
     search_opts.add_option('d', "device", "Blabla");
     search_opts.add_positional(Argument("FLUB"), "File to load");
     search_opts.add_positional(Argument("BLOB"), "Output file");
-    */
+
+    /*
     opts.add_newline();
     opts.add_group("Positional Arguments:");
     opts.add_positional(Argument("FLUB"), "File to load").then([](std::string_view text){
@@ -100,6 +115,11 @@ int main(int argc, char** argv)
     opts.add_positional(Argument<int>("NUMBER"), "a number file").then([](int number){
       std::cout << "number: " << number << std::endl;
     });
+
+    opts.add_newline();
+    opts.add_group("Rest Arguments:");
+    opts.add_rest(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
+    */
 
     opts.add_newline();
     opts.add_text("Copyright, author email and all that stuff");

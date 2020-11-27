@@ -49,12 +49,6 @@ OptionGroup::add_pseudo(std::string name, std::string help)
   m_items.push_back(std::make_unique<PseudoItem>(std::move(name), std::move(help)));
 }
 
-void
-OptionGroup::add_rest(std::string name)
-{
-  m_items.push_back(std::make_unique<RestItem>(std::move(name)));
-}
-
 Option&
 OptionGroup::add_option(std::unique_ptr<Option> option)
 {
@@ -63,13 +57,21 @@ OptionGroup::add_option(std::unique_ptr<Option> option)
   return option_ref;
 }
 
-OptionGroup&
+CommandItem&
 OptionGroup::add_command(std::string name, std::string help)
 {
+  for (auto const& item : m_items) {
+    if (dynamic_cast<PositionalItem*>(item.get()) != nullptr ||
+        dynamic_cast<RestItem*>(item.get()) != nullptr)
+    {
+      throw std::runtime_error("can't mix positional arguments with commands");
+    }
+  }
+
   auto command_item = std::make_unique<CommandItem>(std::move(name), std::move(help));
-  OptionGroup& option_group = command_item->get_options();
+  CommandItem& command_item_ref = *command_item;
   m_items.push_back(std::move(command_item));
-  return option_group;
+  return command_item_ref;
 }
 
 void
@@ -144,6 +146,50 @@ OptionGroup::lookup_long_option(std::string_view name)
     }
   }
   throw std::runtime_error(fmt::format("long option '{}' not found", name));
+}
+
+bool
+OptionGroup::has_options() const
+{
+  for (auto const& item : m_items) {
+    if (dynamic_cast<Option*>(item.get()) != nullptr) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool
+OptionGroup::has_commands() const
+{
+  for (auto const& item : m_items) {
+    if (dynamic_cast<CommandItem*>(item.get()) != nullptr) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool
+OptionGroup::has_positional() const
+{
+  for (auto const& item : m_items) {
+    if (dynamic_cast<PositionalItem*>(item.get()) != nullptr) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool
+OptionGroup::has_rest() const
+{
+  for (auto const& item : m_items) {
+    if (dynamic_cast<RestItem*>(item.get()) != nullptr) {
+      return true;
+    }
+  }
+  return false;
 }
 
 } // namespace argparser
