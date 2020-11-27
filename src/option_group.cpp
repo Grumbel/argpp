@@ -20,6 +20,7 @@
 
 #include "alias_item.hpp"
 #include "command_item.hpp"
+#include "error.hpp"
 #include "positional_item.hpp"
 #include "text_item.hpp"
 
@@ -64,7 +65,7 @@ OptionGroup::add_command(std::string name, std::string help)
     if (dynamic_cast<PositionalItem*>(item.get()) != nullptr ||
         dynamic_cast<RestItem*>(item.get()) != nullptr)
     {
-      throw std::runtime_error("can't mix positional arguments with commands");
+      throw Error("can't mix positional arguments with commands");
     }
   }
 
@@ -97,7 +98,7 @@ OptionGroup::lookup_command(std::string_view name)
       }
     }
   }
-  throw std::runtime_error(fmt::format("command item '{}' not found", name));
+  throw Error(fmt::format("command item '{}' not found", name));
 }
 
 PositionalItem&
@@ -113,7 +114,7 @@ OptionGroup::lookup_positional(int i)
       positional_count += 1;
     }
   }
-  throw std::runtime_error(fmt::format("positional item {} not found", i));
+  throw Error(fmt::format("positional item {} not found", i));
 }
 
 Option&
@@ -129,7 +130,7 @@ OptionGroup::lookup_short_option(char name)
       return alias->get_option();
     }
   }
-  throw std::runtime_error(fmt::format("short option '{}' not found", name));
+  throw Error(fmt::format("short option '{}' not found", name));
 }
 
 Option&
@@ -145,7 +146,7 @@ OptionGroup::lookup_long_option(std::string_view name)
       return alias->get_option();
     }
   }
-  throw std::runtime_error(fmt::format("long option '{}' not found", name));
+  throw Error(fmt::format("long option '{}' not found", name));
 }
 
 bool

@@ -21,9 +21,10 @@
 #include <span>
 #include <string_view>
 
-#include "parser.hpp"
 #include "command_item.hpp"
+#include "error.hpp"
 #include "option_group.hpp"
+#include "parser.hpp"
 #include "positional_item.hpp"
 #include "prettyprinter.hpp"
 #include "text_item.hpp"
@@ -152,7 +153,7 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view
         item.call(arg); // FIXME: throw something useful when the conversion fails
         ctx.incr_positional_counter();
       } catch (...) {
-        throw std::runtime_error(fmt::format("unknown item in position {}: {}", ctx.get_positional_counter(), arg));
+        throw Error(fmt::format("unknown item in position {}: {}", ctx.get_positional_counter(), arg));
       }
     }
     //if (group.has_positional()) {
@@ -173,7 +174,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_vie
     if (option.requires_argument()) {
       dynamic_cast<OptionWithArg&>(option).call(opt_arg);
     } else {
-      throw std::runtime_error("error doesn't need arg");
+      throw Error("error doesn't need arg");
     }
   }
   else
@@ -183,7 +184,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_vie
       dynamic_cast<OptionWithoutArg&>(option).call();
     } else {
       if (!ctx.next()) {
-        throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
+        throw Error("option '" + std::string(arg) + "' requires an argument");
       }
       dynamic_cast<OptionWithArg&>(option).call(ctx.arg());
     }
@@ -206,7 +207,7 @@ Parser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_vi
         break;
       } else { // -f ARG
         if (!ctx.next()) {
-          throw std::runtime_error("option '" + std::string(arg) + "' requires an argument");
+          throw Error("option '" + std::string(arg) + "' requires an argument");
         }
         dynamic_cast<OptionWithArg&>(option).call(ctx.arg());
       }

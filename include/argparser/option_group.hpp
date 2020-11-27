@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 
+#include "error.hpp"
 #include "option.hpp"
 #include "positional_item.hpp"
 #include "rest_item.hpp"
@@ -61,7 +62,7 @@ public:
   TRestItem<T>& add_rest(Argument<T> argument, std::string help = {})
   {
     if (has_rest()) {
-      throw std::runtime_error("only one rest argument ollowed");
+      throw Error("only one rest argument ollowed");
     }
 
     auto rest_item = std::make_unique<TRestItem<T>>(std::move(argument), std::move(help));
