@@ -14,52 +14,55 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_REST_ITEM_HPP
-#define HEADER_ARGPARSER_REST_ITEM_HPP
+#ifndef HEADER_ARGPARSER_CALLBACK_WITH_ARG_HPP
+#define HEADER_ARGPARSER_CALLBACK_WITH_ARG_HPP
 
-#include "item.hpp"
+#include "argument.hpp"
 
 namespace argparser {
 
-class RestItem : public Item
-{
-public:
-  RestItem() {}
-
-  virtual std::string const& get_name() const = 0;
-  virtual std::string const& get_help() const = 0;
-  virtual void call(std::string_view text) = 0;
-};
-
 template<typename T>
-class TRestItem : public RestItem,
-                  public CallbackWithArg<T>
+class CallbackWithArg
 {
 public:
-  TRestItem(Argument<T> argument, std::string help) :
-    CallbackWithArg<T>(argument),
+  CallbackWithArg(Argument<T> argument) :
     m_argument(argument),
-    m_help(std::move(help))
+    m_callback()
   {}
 
-  std::string const& get_name() const override {
-    return m_argument.get_name();
+  virtual ~CallbackWithArg()
+  {}
+
+  void call(std::string_view text) {
+    if (m_callback) {
+      m_callback(m_argument.convert(text));
+    }
   }
 
-  std::string const& get_help() const override {
-    return m_help;
+  template<typename F>
+  void then(F func) {
+    assert(!m_callback);
+    m_callback = func;
   }
 
-  void call(std::string_view text) override {
-    CallbackWithArg<T>::call(text);
+  void store(T& place) {
+    then([&place](T&& value){
+      place = std::move(value);
+    });
+  }
+
+  void append(T& place) {
+    then([&place](T&& value) {
+      place.emplace_back(std::move(value));
+    });
   }
 
 private:
   Argument<T> m_argument;
-  std::string m_help;
+  std::function<void (T)> m_callback;
 };
 
-} //namespace argparser
+} // namespace argparser
 
 #endif
 

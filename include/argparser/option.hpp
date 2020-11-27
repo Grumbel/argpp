@@ -20,6 +20,8 @@
 #include <string>
 #include <string_view>
 
+#include "callback.hpp"
+#include "callback_with_arg.hpp"
 #include "argument.hpp"
 #include "item.hpp"
 
@@ -47,42 +49,15 @@ private:
   std::string m_help;
 };
 
-class OptionWithoutArg : public Option
+class OptionWithoutArg : public Option,
+                         public Callback
 {
 public:
   OptionWithoutArg(char short_name, std::string long_name, std::string help) :
-    Option(short_name, long_name, help),
-    m_callback()
+    Option(short_name, long_name, help)
   {}
 
   bool requires_argument() const override { return false; }
-
-  void call() {
-    if (m_callback) {
-      m_callback();
-    }
-  }
-
-  void then(std::function<void ()> cb) {
-    m_callback = cb;
-  }
-
-  template<typename T>
-  void store(T& place, T const value) {
-    then([&place, value = std::move(value)]{
-      place = value;
-    });
-  }
-
-  template<typename T>
-  void append(T& place, T const value) {
-    then([&place, value = std::move(value)]{
-      place.emplace_back(std::move(value));
-    });
-  }
-
-private:
-  std::function<void ()> m_callback;
 };
 
 class OptionWithArg : public Option
@@ -94,13 +69,14 @@ public:
 };
 
 template<typename T>
-class TOptionWithArg : public OptionWithArg
+class TOptionWithArg : public OptionWithArg,
+                       public CallbackWithArg<T>
 {
 public:
   TOptionWithArg(char short_name, std::string long_name, Argument<T> argument, std::string help) :
     OptionWithArg(short_name, long_name, help),
-    m_argument(std::move(argument)),
-    m_callback()
+    CallbackWithArg<T>(argument),
+    m_argument(std::move(argument))
   {}
 
   bool requires_argument() const override { return true; }
@@ -110,20 +86,11 @@ public:
   }
 
   void call(std::string_view text) override {
-    if (m_callback) {
-      m_callback(m_argument.convert(text));
-    }
-  }
-
-  template<typename F>
-  void then(F func) {
-    assert(!m_callback);
-    m_callback = func;
+    CallbackWithArg<T>::call(text);
   }
 
 private:
   Argument<T> m_argument;
-  std::function<void (T)> m_callback;
 };
 
 } // namespace argparser

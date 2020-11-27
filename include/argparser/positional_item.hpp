@@ -17,12 +17,15 @@
 #ifndef HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
 #define HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
 
+#include "callback_with_arg.hpp"
+
 namespace argparser {
 
 class PositionalItem : public Item
 {
 public:
   PositionalItem() {}
+  virtual ~PositionalItem() {}
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;
@@ -30,13 +33,14 @@ public:
 };
 
 template<typename T>
-class TPositionalItem : public PositionalItem
+class TPositionalItem : public PositionalItem,
+                        public CallbackWithArg<T>
 {
 public:
   TPositionalItem(Argument<T> argument, std::string help) :
+    CallbackWithArg<T>(argument),
     m_argument(argument),
-    m_help(std::move(help)),
-    m_callback()
+    m_help(std::move(help))
   {}
 
   std::string const& get_name() const override {
@@ -48,21 +52,12 @@ public:
   }
 
   void call(std::string_view text) override {
-    if (m_callback) {
-      m_callback(m_argument.convert(text));
-    }
-  }
-
-  template<typename F>
-  void then(F func) {
-    assert(!m_callback);
-    m_callback = func;
+    CallbackWithArg<T>::call(text);
   }
 
 private:
   Argument<T> m_argument;
   std::string m_help;
-  std::function<void (T)> m_callback;
 };
 
 } // namespace argparser
