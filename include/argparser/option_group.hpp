@@ -22,9 +22,13 @@
 #include <vector>
 
 #include "option.hpp"
-#include "item.hpp"
+#include "positional_item.hpp"
 
 namespace argparser {
+
+class CommandItem;
+class Option;
+class PositionalItem;
 
 class OptionGroup
 {
@@ -40,6 +44,19 @@ public:
 
   void add_alias(std::string name, Option& option);
   void add_alias(char name, Option& option);
+
+  OptionGroup& add_command(std::string name, std::string help);
+
+  template<typename T>
+  TPositionalItem<T>& add_positional(Argument<T> argument, std::string help = {})
+  {
+    auto positional_item = std::make_unique<TPositionalItem<T>>(std::move(argument), std::move(help));
+    auto& positional_item_ref = *positional_item;
+    m_items.emplace_back(std::move(positional_item));
+    return positional_item_ref;
+  }
+
+  void add_rest(std::string name);
 
   Option& add_option(std::unique_ptr<Option> option);
 
@@ -74,6 +91,7 @@ public:
   }
   */
 
+  CommandItem& lookup_command(std::string_view name);
   PositionalItem& lookup_positional(int i);
   Option& lookup_short_option(char name);
   Option& lookup_long_option(std::string_view name);

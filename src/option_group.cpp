@@ -16,6 +16,13 @@
 
 #include "option_group.hpp"
 
+#include <fmt/format.h>
+
+#include "alias_item.hpp"
+#include "command_item.hpp"
+#include "positional_item.hpp"
+#include "text_item.hpp"
+
 namespace argparser {
 
 void
@@ -42,12 +49,27 @@ OptionGroup::add_pseudo(std::string name, std::string help)
   m_items.push_back(std::make_unique<PseudoItem>(std::move(name), std::move(help)));
 }
 
+void
+OptionGroup::add_rest(std::string name)
+{
+  m_items.push_back(std::make_unique<RestItem>(name));
+}
+
 Option&
 OptionGroup::add_option(std::unique_ptr<Option> option)
 {
   Option& option_ref = *option;
   m_items.push_back(std::move(option));
   return option_ref;
+}
+
+OptionGroup&
+OptionGroup::add_command(std::string name, std::string help)
+{
+  auto command_item = std::make_unique<CommandItem>(std::move(name), std::move(help));
+  OptionGroup& option_group = command_item->get_options();
+  m_items.push_back(std::move(command_item));
+  return option_group;
 }
 
 void
@@ -60,6 +82,20 @@ void
 OptionGroup::add_alias(char name, Option& option)
 {
   m_items.push_back(std::make_unique<ShortOptionAlias>(name, option));
+}
+
+CommandItem&
+OptionGroup::lookup_command(std::string_view name)
+{
+  for (auto& item : m_items) {
+    Item* ptr = item.get();
+    if (CommandItem* command_item = dynamic_cast<CommandItem*>(ptr)) {
+      if (command_item->get_name() == name) {
+        return *command_item;
+      }
+    }
+  }
+  throw std::runtime_error(fmt::format("command item '{}' not found", name));
 }
 
 PositionalItem&
@@ -75,7 +111,7 @@ OptionGroup::lookup_positional(int i)
       positional_count += 1;
     }
   }
-  throw std::runtime_error("positional item not found");
+  throw std::runtime_error(fmt::format("positional item {} not found", i));
 }
 
 Option&
@@ -91,7 +127,7 @@ OptionGroup::lookup_short_option(char name)
       return alias->get_option();
     }
   }
-  throw std::runtime_error("short option not found");
+  throw std::runtime_error(fmt::format("short option '{}' not found", name));
 }
 
 Option&
@@ -107,7 +143,7 @@ OptionGroup::lookup_long_option(std::string_view name)
       return alias->get_option();
     }
   }
-  throw std::runtime_error("long option not found");
+  throw std::runtime_error(fmt::format("long option '{}' not found", name));
 }
 
 } // namespace argparser

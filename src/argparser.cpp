@@ -16,12 +16,17 @@
 
 #include <sys/ioctl.h>
 
+#include <fmt/format.h>
+
 #include <span>
 #include <string_view>
 
 #include "argparser.hpp"
+#include "command_item.hpp"
 #include "option_group.hpp"
+#include "positional_item.hpp"
 #include "prettyprinter.hpp"
+#include "text_item.hpp"
 
 namespace argparser {
 
@@ -50,7 +55,8 @@ class ParseContext
 public:
   ParseContext(int argc, char** argv) :
     m_idx(0),
-    m_argv(argv, argc)
+    m_argv(argv, argc),
+    m_positional_counter(0)
   {}
 
   std::string_view arg() const {
@@ -68,9 +74,13 @@ public:
 
   std::string_view program() const { return m_argv[0]; }
 
+  void incr_positional_counter() { m_positional_counter += 1; }
+  int get_positional_counter() const { return m_positional_counter; }
+
 private:
   size_t m_idx;
   std::span<char*> m_argv;
+  int m_positional_counter;
 };
 
 ArgParser::ArgParser() :
@@ -88,12 +98,6 @@ ArgParser::add_usage(std::string_view program, std::string_view usage)
 }
 
 OptionGroup&
-ArgParser::add_command(std::string_view name)
-{
-  throw std::runtime_error("not implemented");
-}
-
-OptionGroup&
 ArgParser::options()
 {
   return m_root;
@@ -104,49 +108,61 @@ ArgParser::parse_args(int argc, char** argv)
 {
   ParseContext ctx(argc, argv);
 
-  OptionGroup* option_group = &m_root;
-
-  int positional_counter = 0;
   while (ctx.next())
   {
     std::string_view const arg = ctx.arg();
 
     if (arg.empty() || arg[0] != '-') // rest
     {
-      PositionalItem& item = option_group->lookup_positional(positional_counter);
-      item.callback(arg);
-      positional_counter += 1;
+      parse_non_option(ctx, arg);
     }
     else if (arg[1] == '-') // --...
     {
-      if (arg.size() == 2) // --
-      {
+      if (arg.size() == 2) { // --
         // Got a '--' treat everything after this as rest
         while (ctx.next()) {
-          PositionalItem& item = option_group->lookup_positional(positional_counter);
-          item.callback(arg);
-          positional_counter += 1;
+          parse_non_option(ctx, arg);
         }
         break;
-      }
-      else
-      {
+      } else {
         parse_long_option(ctx, arg);
       }
     }
     else // short option
     {
-      if (arg.size() == 1) // -
-      {
-        PositionalItem& item = option_group->lookup_positional(positional_counter);
-        item.callback(arg);
-        positional_counter += 1;
-      }
-      else
-      {
+      if (arg.size() == 1) { // -
+        parse_non_option(ctx, arg);
+      } else {
         parse_short_option(ctx, arg);
       }
     }
+  }
+
+  // FIXME:
+  // - check if all required option where given
+  // - add mutual exclusion checks
+}
+
+void
+ArgParser::parse_non_option(ParseContext& ctx, std::string_view arg)
+{
+  OptionGroup* option_group = &m_root;
+
+  /*
+  try {
+    CommandItem& command_item = option_group->lookup_command(arg);
+    // FIXME: recursive option parse
+    return;
+  } catch (...) {
+  }
+  */
+
+  try {
+    PositionalItem& item = option_group->lookup_positional(ctx.get_positional_counter());
+    item.call(arg); // FIXME: throw something useful when the conversion fails
+    ctx.incr_positional_counter();
+  } catch (...) {
+    throw std::runtime_error(fmt::format("unknown item in position {}: {}", ctx.get_positional_counter(), arg));
   }
 }
 
@@ -256,6 +272,8 @@ ArgParser::print_help(std::ostream& out) const
       pprint.print(text_item->get_text());
     } else if (PseudoItem* pseudo_item = dynamic_cast<PseudoItem*>(item.get())) {
       pprint.print(std::string(column_width, ' '), pseudo_item->get_name(), pseudo_item->get_help());
+    } else if (PositionalItem* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
+      pprint.print(std::string(column_width, ' '), "  " + positional_item->get_name(), positional_item->get_help());
     } else if (Option* opt = dynamic_cast<Option*>(item.get())) {
       constexpr size_t buffer_size = 256;
       std::array<char, buffer_size> option   = { 0 };
@@ -281,6 +299,10 @@ ArgParser::print_help(std::ostream& out) const
       left_column += " ";
 
       pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
+    } else if (CommandItem* command_item = dynamic_cast<CommandItem*>(item.get())) {
+      pprint.print(std::string(column_width, ' '), "  " + command_item->get_name(), command_item->get_help());
+    } else {
+      // unhandled items
     }
   }
 }

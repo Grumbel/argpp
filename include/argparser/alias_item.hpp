@@ -14,41 +14,44 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_FROM_STRING_HPP
-#define HEADER_ARGPARSER_FROM_STRING_HPP
+#ifndef HEADER_ARGPARSER_ALIAS_ITEM_HPP
+#define HEADER_ARGPARSER_ALIAS_ITEM_HPP
 
-#include <string>
-#include <string_view>
+#include "item.hpp"
 
 namespace argparser {
 
-template<typename T> inline
-T from_string(std::string_view text)
+class LongOptionAlias : public Item
 {
-  return T(text);
-}
+public:
+  LongOptionAlias(std::string name, Option& option) :
+    m_name(name),
+    m_option(option)
+  {}
 
-template<> inline
-bool from_string<bool>(std::string_view text)
-{
-  if (text == "0") {
-    return false;
-  } else {
-    return true;
-  }
-}
+  std::string const& get_name() const { return m_name; }
+  Option& get_option() const { return m_option; }
 
-template<> inline
-int from_string<int>(std::string_view text)
-{
-  return std::stoi(std::string(text));
-}
+private:
+  std::string m_name;
+  Option& m_option;
+};
 
-template<> inline
-float from_string<float>(std::string_view text)
+class ShortOptionAlias : public Item
 {
-  return std::stof(std::string(text));
-}
+public:
+  ShortOptionAlias(char name, Option& option) :
+    m_name(name),
+    m_option(option)
+  {}
+
+  char get_name() const { return m_name; }
+  Option& get_option() const { return m_option; }
+
+private:
+  char m_name;
+  Option& m_option;
+};
 
 } // namespace argparser
 

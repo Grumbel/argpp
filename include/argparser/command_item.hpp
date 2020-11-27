@@ -14,41 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_FROM_STRING_HPP
-#define HEADER_ARGPARSER_FROM_STRING_HPP
+#ifndef HEADER_ARGPARSER_COMMAND_ITEM_HPP
+#define HEADER_ARGPARSER_COMMAND_ITEM_HPP
 
-#include <string>
-#include <string_view>
+#include "item.hpp"
 
 namespace argparser {
 
-template<typename T> inline
-T from_string(std::string_view text)
+class CommandItem : public Item
 {
-  return T(text);
-}
+public:
+  CommandItem(std::string name, std::string help) :
+    m_name(std::move(name)),
+    m_help(std::move(help)),
+    m_options()
+  {}
 
-template<> inline
-bool from_string<bool>(std::string_view text)
-{
-  if (text == "0") {
-    return false;
-  } else {
-    return true;
-  }
-}
+  std::string get_name() const { return m_name; }
+  std::string get_help() const { return m_help; }
+  OptionGroup& get_options() { return m_options; }
 
-template<> inline
-int from_string<int>(std::string_view text)
-{
-  return std::stoi(std::string(text));
-}
-
-template<> inline
-float from_string<float>(std::string_view text)
-{
-  return std::stof(std::string(text));
-}
+private:
+  std::string m_name;
+  std::string m_help;
+  OptionGroup m_options;
+};
 
 } // namespace argparser
 

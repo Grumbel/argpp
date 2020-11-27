@@ -23,99 +23,12 @@
 #include <variant>
 #include <vector>
 
-#include "argument.hpp"
-
 namespace argparser {
-
-class Option;
-class OptionGroup;
 
 class Item
 {
 public:
   virtual ~Item() {}
-};
-
-class TextItem : public Item
-{
-public:
-  TextItem(std::string text) :
-    m_text(std::move(text))
-  {}
-
-  std::string const& get_text() const { return m_text; }
-
-private:
-  std::string m_text;
-};
-
-class PseudoItem : public Item
-{
-public:
-  PseudoItem(std::string name, std::string help) :
-    m_name(std::move(name)),
-    m_help(std::move(help))
-  {}
-
-  std::string const& get_name() const { return m_name; }
-  std::string const& get_help() const { return m_help; }
-
-private:
-  std::string m_name;
-  std::string m_help;
-};
-
-class CommandItem : public Item
-{
-public:
-  std::string name;
-  std::unique_ptr<OptionGroup> option_group;
-};
-
-class PositionalItem : public Item
-{
-public:
-  std::string name;
-  std::function<void (std::string_view)> callback;
-};
-
-class RestItem : public Item
-{
-public:
-  std::string name;
-  std::function<void (std::string_view)> callback;
-};
-
-class LongOptionAlias : public Item
-{
-public:
-  LongOptionAlias(std::string name, Option& option) :
-    m_name(name),
-    m_option(option)
-  {}
-
-  std::string const& get_name() const { return m_name; }
-  Option& get_option() const { return m_option; }
-
-private:
-  std::string m_name;
-  Option& m_option;
-};
-
-class ShortOptionAlias : public Item
-{
-public:
-  ShortOptionAlias(char name, Option& option) :
-    m_name(name),
-    m_option(option)
-  {}
-
-  char get_name() const { return m_name; }
-  Option& get_option() const { return m_option; }
-
-private:
-  char m_name;
-  Option& m_option;
 };
 
 } // namespace argparser

@@ -76,6 +76,31 @@ int main(int argc, char** argv)
     //Argument<std::tuple<int, int, std::string>>();
     //Argument<std::vector<int>()
 
+    /*
+    opts.add_newline();
+    opts.add_group("Commands:");
+    auto& install_opts = opts.add_command("install", "Install stuff");
+    install_opts.add_option('n', "number", "Blabla");
+    install_opts.add_option('d', "device", "Blabla");
+
+    auto& search_opts = opts.add_command("search", "Search stuff");
+    search_opts.add_option('n', "number", "Blabla");
+    search_opts.add_option('d', "device", "Blabla");
+    search_opts.add_positional(Argument("FLUB"), "File to load");
+    search_opts.add_positional(Argument("BLOB"), "Output file");
+    */
+    opts.add_newline();
+    opts.add_group("Positional Arguments:");
+    opts.add_positional(Argument("FLUB"), "File to load").then([](std::string_view text){
+      std::cout << "flub: " << text << std::endl;
+    });
+    opts.add_positional(Argument<std::filesystem::path>("BLOB"), "Output file").then([](std::filesystem::path text){
+      std::cout << "blob: " << text << std::endl;
+    });
+    opts.add_positional(Argument<int>("NUMBER"), "a number file").then([](int number){
+      std::cout << "number: " << number << std::endl;
+    });
+
     opts.add_newline();
     opts.add_text("Copyright, author email and all that stuff");
 

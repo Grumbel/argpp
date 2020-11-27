@@ -25,6 +25,8 @@ include(ClangTidy)
 
 option(BUILD_TESTS "Build tests" OFF)
 
+find_package(fmt REQUIRED)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -35,6 +37,7 @@ add_library(argparser STATIC
   ${ARGPARSER_SOURCES})
 target_include_directories(argparser PUBLIC include/ include/argparser/ src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
+target_link_libraries(argparser PUBLIC fmt::fmt)
 set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
 
 if(BUILD_TESTS)

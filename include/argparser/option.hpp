@@ -20,6 +20,7 @@
 #include <string>
 #include <string_view>
 
+#include "argument.hpp"
 #include "item.hpp"
 
 namespace argparser {

@@ -17,6 +17,7 @@
 #ifndef HEADER_ARGPARSER_ARGUMENT_HPP
 #define HEADER_ARGPARSER_ARGUMENT_HPP
 
+#include <functional>
 #include <string_view>
 
 #include "from_string.hpp"

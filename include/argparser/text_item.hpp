@@ -14,41 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_FROM_STRING_HPP
-#define HEADER_ARGPARSER_FROM_STRING_HPP
-
-#include <string>
-#include <string_view>
+#ifndef HEADER_ARGPARSER_TEXT_ITEM_HPP
+#define HEADER_ARGPARSER_TEXT_ITEM_HPP
 
 namespace argparser {
 
-template<typename T> inline
-T from_string(std::string_view text)
+class TextItem : public Item
 {
-  return T(text);
-}
+public:
+  TextItem(std::string text) :
+    m_text(std::move(text))
+  {}
 
-template<> inline
-bool from_string<bool>(std::string_view text)
-{
-  if (text == "0") {
-    return false;
-  } else {
-    return true;
-  }
-}
+  std::string const& get_text() const { return m_text; }
 
-template<> inline
-int from_string<int>(std::string_view text)
-{
-  return std::stoi(std::string(text));
-}
+private:
+  std::string m_text;
+};
 
-template<> inline
-float from_string<float>(std::string_view text)
+class PseudoItem : public Item
 {
-  return std::stof(std::string(text));
-}
+public:
+  PseudoItem(std::string name, std::string help) :
+    m_name(std::move(name)),
+    m_help(std::move(help))
+  {}
+
+  std::string const& get_name() const { return m_name; }
+  std::string const& get_help() const { return m_help; }
+
+private:
+  std::string m_name;
+  std::string m_help;
+};
 
 } // namespace argparser
 

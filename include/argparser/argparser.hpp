@@ -38,7 +38,6 @@ public:
 
   void add_usage(std::string_view program, std::string_view usage);
   OptionGroup& options();
-  OptionGroup& add_command(std::string_view name);
 
   void print_help(std::ostream& out = std::cout) const;
   void parse_args(int argc, char** argv);
@@ -46,6 +45,7 @@ public:
 private:
   void parse_long_option(ParseContext& ctx, std::string_view arg);
   void parse_short_option(ParseContext& ctx, std::string_view arg);
+  void parse_non_option(ParseContext& ctx, std::string_view arg);
 
 private:
   std::string m_program;
