@@ -15,6 +15,7 @@ Checks: >
   -readability-implicit-bool-conversion,
   -readability-magic-numbers,
   -readability-redundant-member-init,
+  -readability-convert-member-functions-to-static,
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'src/.*hpp'
 AnalyzeTemporaryDtors: true
