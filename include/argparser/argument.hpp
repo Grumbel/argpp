@@ -61,8 +61,9 @@ private:
   std::function<T (std::string_view)> m_convert_func;
 };
 
+// Class template argument deduction (CTAD)
 template<typename F>
-Argument(std::string name, F func) -> Argument<F>;
+Argument(std::string name, F func) -> Argument<typename std::result_of<F()>::type>;
 
 } // namespace argparser
 
