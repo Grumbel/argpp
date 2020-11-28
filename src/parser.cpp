@@ -243,7 +243,7 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
   }
   else
   {
-    bool is_first = true;
+    size_t item_idx = 0;
     for (auto const& item : get_items()) {
       if (auto* command_item = dynamic_cast<CommandItem*>(item.get())) {
         if (current_command_item != nullptr &&
@@ -251,11 +251,10 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
           continue;
         }
 
-        if (is_first) {
-          is_first = false;
+        if (item_idx == 0) {
           out << "Usage: ";
         } else {
-          out << "       ";
+          out << "\n       ";
         }
 
         out << m_program;
@@ -267,7 +266,8 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
         out << " " << command_item->get_name();
 
         print_group(command_item->get_options());
-        out << std::endl;
+
+        item_idx += 1;
       }
     }
   }
