@@ -333,29 +333,20 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
     } else if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
       pprint.print(std::string(column_width, ' '), "  " + rest_item->get_name(), rest_item->get_help());
     } else if (auto* opt = dynamic_cast<Option*>(item.get())) {
-      constexpr size_t buffer_size = 256;
-      std::array<char, buffer_size> option   = { 0 };
-      std::array<char, buffer_size> argument = { 0 };
-
-      if (opt->get_short_name()) {
-        if (!opt->get_long_name()) {
-          snprintf(option.data(), option.size(), "-%c", *opt->get_short_name());
-        } else {
-          snprintf(option.data(), option.size(), "-%c, --%s", *opt->get_short_name(), opt->get_long_name()->c_str());
-        }
-      } else {
-        snprintf(option.data(), option.size(), "--%s", opt->get_long_name()->c_str());
+      std::string left_column("  ");
+      if (opt->get_short_name() && opt->get_long_name()) {
+        left_column += fmt::format("-{}, --{}", *opt->get_short_name(), *opt->get_long_name());
+      } else if (opt->get_short_name()) {
+        left_column += fmt::format("-{}", *opt->get_short_name());
+      } else /* if (opt->get_long_name()) */ {
+        left_column += fmt::format("--{}", *opt->get_long_name());
       }
 
       if (opt->requires_argument()) {
-        snprintf(argument.data(), argument.size(), "%c%s",
-                 opt->get_long_name() ? '=' : ' ',
-                 dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
+        left_column += fmt::format("{}{}",
+                                   opt->get_long_name() ? '=' : ' ',
+                                   dynamic_cast<OptionWithArg&>(*opt).get_argument_name());
       }
-
-      std::string left_column("  ");
-      left_column += option.data();
-      left_column += argument.data();
       left_column += " ";
 
       pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
