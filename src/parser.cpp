@@ -297,8 +297,8 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
           width += 2; // "-a"
         }
 
-        if (!opt->get_long_name().empty()) {
-          width += static_cast<int>(opt->get_long_name().size()) + 2; // "--foobar"
+        if (opt->get_long_name()) {
+          width += static_cast<int>(opt->get_long_name()->size()) + 2; // "--foobar"
         }
 
         if (opt->requires_argument()) {
@@ -338,18 +338,18 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
       std::array<char, buffer_size> argument = { 0 };
 
       if (opt->get_short_name()) {
-        if (opt->get_long_name().empty()) {
-          snprintf(option.data(), option.size(), "-%c", opt->get_short_name());
+        if (!opt->get_long_name()) {
+          snprintf(option.data(), option.size(), "-%c", *opt->get_short_name());
         } else {
-          snprintf(option.data(), option.size(), "-%c, --%s", opt->get_short_name(), opt->get_long_name().c_str());
+          snprintf(option.data(), option.size(), "-%c, --%s", *opt->get_short_name(), opt->get_long_name()->c_str());
         }
       } else {
-        snprintf(option.data(), option.size(), "--%s", opt->get_long_name().c_str());
+        snprintf(option.data(), option.size(), "--%s", opt->get_long_name()->c_str());
       }
 
       if (opt->requires_argument()) {
         snprintf(argument.data(), argument.size(), "%c%s",
-                 !opt->get_long_name().empty() ? '=' : ' ',
+                 opt->get_long_name() ? '=' : ' ',
                  dynamic_cast<OptionWithArg&>(*opt).get_argument_name().c_str());
       }
 

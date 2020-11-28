@@ -72,16 +72,21 @@ public:
     return rest_item_ref;
   }
 
-  OptionWithoutArg& add_option(char short_name, std::string long_name, std::string help)
+  OptionWithoutArg& add_option(std::optional<char> short_name,
+                               std::optional<std::string> long_name,
+                               std::string help)
   {
-    auto opt = std::make_unique<OptionWithoutArg>(short_name, std::move(long_name), std::move(help));
+    auto opt = std::make_unique<OptionWithoutArg>(std::move(short_name), std::move(long_name), std::move(help));
     return dynamic_cast<OptionWithoutArg&>(add_option(std::move(opt)));
   }
 
   template<typename T>
-  TOptionWithArg<T>& add_option(char short_name, std::string long_name, Argument<T> argument, std::string help)
+  TOptionWithArg<T>& add_option(std::optional<char> short_name,
+                                std::optional<std::string> long_name,
+                                Argument<T> argument,
+                                std::string help)
   {
-    auto opt = std::make_unique<TOptionWithArg<T>>(short_name, std::move(long_name), std::move(argument), std::move(help));
+    auto opt = std::make_unique<TOptionWithArg<T>>(std::move(short_name), std::move(long_name), std::move(argument), std::move(help));
     return dynamic_cast<TOptionWithArg<T>&>(add_option(std::move(opt)));
   }
 

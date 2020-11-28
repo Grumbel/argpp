@@ -17,6 +17,7 @@
 #ifndef HEADER_ARGPARSER_OPTION_HPP
 #define HEADER_ARGPARSER_OPTION_HPP
 
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -30,7 +31,7 @@ namespace argparser {
 class Option : public Item
 {
 public:
-  Option(char short_name, std::string long_name, std::string help) :
+  Option(std::optional<char> short_name, std::optional<std::string> long_name, std::string help) :
     m_short_name(short_name),
     m_long_name(std::move(long_name)),
     m_help(std::move(help))
@@ -38,14 +39,14 @@ public:
 
   std::string const& get_help() const { return m_help; }
 
-  char get_short_name() const { return m_short_name; }
-  std::string const& get_long_name() const { return m_long_name; }
+  std::optional<char> get_short_name() const { return m_short_name; }
+  std::optional<std::string> const& get_long_name() const { return m_long_name; }
 
   virtual bool requires_argument() const = 0;
 
 private:
-  char m_short_name;
-  std::string m_long_name;
+  std::optional<char> m_short_name;
+  std::optional<std::string> m_long_name;
   std::string m_help;
 };
 
@@ -53,7 +54,9 @@ class OptionWithoutArg : public Option,
                          public Callback
 {
 public:
-  OptionWithoutArg(char short_name, std::string long_name, std::string help) :
+  OptionWithoutArg(std::optional<char> short_name,
+                   std::optional<std::string> long_name,
+                   std::string help) :
     Option(short_name, std::move(long_name), std::move(help))
   {}
 
@@ -73,7 +76,10 @@ class TOptionWithArg : public OptionWithArg,
                        public CallbackWithArg<T>
 {
 public:
-  TOptionWithArg(char short_name, std::string long_name, Argument<T> argument, std::string help) : // NOLINT
+  TOptionWithArg(std::optional<char> short_name,
+                 std::optional<std::string> long_name,
+                 Argument<T> argument,
+                 std::string help) : // NOLINT
     OptionWithArg(short_name, std::move(long_name), std::move(help)),
     CallbackWithArg<T>(argument),
     m_argument(std::move(argument))

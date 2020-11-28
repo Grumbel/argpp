@@ -62,11 +62,11 @@ Option&
 OptionGroup::add_option(std::unique_ptr<Option> option)
 {
   if (option->get_short_name()) {
-    add_short_option(option->get_short_name(), *option);
+    add_short_option(*option->get_short_name(), *option);
   }
 
-  if (!option->get_long_name().empty()) {
-    add_long_option(option->get_long_name(), *option);
+  if (option->get_long_name()) {
+    add_long_option(*option->get_long_name(), *option);
   }
 
   Option& option_ref = *option;
