@@ -301,8 +301,12 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
           width += static_cast<int>(opt->get_long_name()->size()) + 2; // "--foobar"
         }
 
+        if (opt->get_short_name() && opt->get_long_name()) {
+          width += 2; // ", "
+        }
+
         if (opt->requires_argument()) {
-          width += static_cast<int>(dynamic_cast<OptionWithArg&>(*opt).get_argument_name().size()) + 1;
+          width += static_cast<int>(dynamic_cast<OptionWithArg&>(*opt).get_argument_name().size()) + 1; // "=ARG"
         }
 
         column_width = std::max(column_width, width);
