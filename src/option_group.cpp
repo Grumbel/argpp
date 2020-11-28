@@ -26,6 +26,13 @@
 
 namespace argparser {
 
+OptionGroup::OptionGroup() :
+  m_items(),
+  m_short_options(),
+  m_long_options()
+{
+}
+
 void
 OptionGroup::add_group(std::string name)
 {
@@ -54,6 +61,14 @@ OptionGroup::add_pseudo(std::string name, std::string help)
 Option&
 OptionGroup::add_option(std::unique_ptr<Option> option)
 {
+  if (option->get_short_name()) {
+    add_short_option(option->get_short_name(), *option);
+  }
+
+  if (!option->get_long_name().empty()) {
+    add_long_option(option->get_long_name(), *option);
+  }
+
   Option& option_ref = *option;
   m_items.push_back(std::move(option));
   return option_ref;
@@ -77,19 +92,39 @@ OptionGroup::add_command(std::string name, std::string help)
 }
 
 void
-OptionGroup::add_alias(std::string name, Option& option)
+OptionGroup::add_alias(char name, Option const& option)
 {
-  m_items.push_back(std::make_unique<LongOptionAlias>(std::move(name), option));
+  add_short_option(name, option);
 }
 
 void
-OptionGroup::add_alias(char name, Option& option)
+OptionGroup::add_alias(std::string name, Option const& option)
 {
-  m_items.push_back(std::make_unique<ShortOptionAlias>(name, option));
+  add_long_option(name, option);
+}
+
+void
+OptionGroup::add_short_option(char name, Option const& option)
+{
+  if (m_short_options.find(name) != m_short_options.end()) {
+    throw Error(fmt::format("duplicate short option '{}'", name));
+  }
+
+  m_short_options[name] = &option;
+}
+
+void
+OptionGroup::add_long_option(std::string name, Option const& option)
+{
+  if (m_long_options.find(name) != m_long_options.end()) {
+    throw Error(fmt::format("duplicate long option '{}'", name));
+  }
+
+  m_long_options[name] = &option;
 }
 
 CommandItem&
-OptionGroup::lookup_command(std::string_view name)
+OptionGroup::lookup_command(std::string_view name) const
 {
   for (auto& item : m_items) {
     Item* ptr = item.get();
@@ -103,7 +138,7 @@ OptionGroup::lookup_command(std::string_view name)
 }
 
 PositionalItem&
-OptionGroup::lookup_positional(int i)
+OptionGroup::lookup_positional(int i) const
 {
   int positional_count = 0;
   for (auto& item : m_items) {
@@ -118,36 +153,24 @@ OptionGroup::lookup_positional(int i)
   throw Error(fmt::format("positional item {} not found", i));
 }
 
-Option&
-OptionGroup::lookup_short_option(char name)
+Option const&
+OptionGroup::lookup_short_option(char name) const
 {
-  for (auto& item : m_items) {
-    if (auto* option = dynamic_cast<Option*>(item.get())) {
-      if (option->get_short_name() == name) {
-        return *option;
-      }
-    } else if (auto* alias = dynamic_cast<ShortOptionAlias*>(item.get());
-               alias && alias->get_name() == name) {
-      return alias->get_option();
-    }
+  if (auto it = m_short_options.find(name); it != m_short_options.end()) {
+    return *it->second;
+  } else {
+    throw Error(fmt::format("short option '{}' not found", name));
   }
-  throw Error(fmt::format("short option '{}' not found", name));
 }
 
-Option&
-OptionGroup::lookup_long_option(std::string_view name)
+Option const&
+OptionGroup::lookup_long_option(std::string_view name) const
 {
-  for (auto& item : m_items) {
-    if (auto* option = dynamic_cast<Option*>(item.get())) {
-      if (option->get_long_name() == name) {
-        return *option;
-      }
-    } else if (auto* alias = dynamic_cast<LongOptionAlias*>(item.get());
-               alias && alias->get_name() == name) {
-      return alias->get_option();
-    }
+  if (auto it = m_long_options.find(std::string(name)); it != m_long_options.end()) {
+    return *it->second;
+  } else {
+    throw Error(fmt::format("long option '{}' not found", name));
   }
-  throw Error(fmt::format("long option '{}' not found", name));
 }
 
 bool

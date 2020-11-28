@@ -32,7 +32,7 @@ public:
 
   virtual ~CallbackWithArg() = default;
 
-  void call(std::string_view text) {
+  void call(std::string_view text) const {
     if (m_callback) {
       m_callback(m_argument.convert(text));
     }

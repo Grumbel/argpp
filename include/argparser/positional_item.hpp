@@ -29,7 +29,7 @@ public:
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;
-  virtual void call(std::string_view text) = 0;
+  virtual void call(std::string_view text) const = 0;
 };
 
 template<typename T>
@@ -51,7 +51,7 @@ public:
     return m_help;
   }
 
-  void call(std::string_view text) override {
+  void call(std::string_view text) const override {
     CallbackWithArg<T>::call(text);
   }
 

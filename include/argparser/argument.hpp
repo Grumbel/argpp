@@ -53,7 +53,7 @@ public:
     m_convert_func(func)
   {}
 
-  T convert(std::string_view text) {
+  T convert(std::string_view text) const {
     return m_convert_func(text);
   }
 

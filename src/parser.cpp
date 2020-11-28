@@ -170,23 +170,23 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_vie
     std::string_view opt_arg = opt.substr(equal_pos + 1);
     opt = opt.substr(0, equal_pos);
 
-    Option& option = group.lookup_long_option(opt);
+    Option const& option = group.lookup_long_option(opt);
     if (option.requires_argument()) {
-      dynamic_cast<OptionWithArg&>(option).call(opt_arg);
+      dynamic_cast<OptionWithArg const&>(option).call(opt_arg);
     } else {
       throw Error("error doesn't need arg");
     }
   }
   else
   {
-    Option& option = group.lookup_long_option(opt);
+    Option const& option = group.lookup_long_option(opt);
     if (!option.requires_argument()) {
-      dynamic_cast<OptionWithoutArg&>(option).call();
+      dynamic_cast<OptionWithoutArg const&>(option).call();
     } else {
       if (!ctx.next()) {
         throw Error("option '" + std::string(arg) + "' requires an argument");
       }
-      dynamic_cast<OptionWithArg&>(option).call(ctx.arg());
+      dynamic_cast<OptionWithArg const&>(option).call(ctx.arg());
     }
   }
 }
@@ -198,18 +198,18 @@ Parser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_vi
 
   for (size_t opts_i = 0; opts_i < opts.size(); ++opts_i) {
     char const opt = opts[opts_i];
-    Option& option = group.lookup_short_option(opt);
+    Option const& option = group.lookup_short_option(opt);
     if (!option.requires_argument()) {
-      dynamic_cast<OptionWithoutArg&>(option).call();
+      dynamic_cast<OptionWithoutArg const&>(option).call();
     } else {
       if (opts_i != opts.size() - 1) { // -fARG
-        dynamic_cast<OptionWithArg&>(option).call(opts.substr(opts_i + 1));
+        dynamic_cast<OptionWithArg const&>(option).call(opts.substr(opts_i + 1));
         break;
       } else { // -f ARG
         if (!ctx.next()) {
           throw Error("option '" + std::string(arg) + "' requires an argument");
         }
-        dynamic_cast<OptionWithArg&>(option).call(ctx.arg());
+        dynamic_cast<OptionWithArg const&>(option).call(ctx.arg());
       }
     }
   }

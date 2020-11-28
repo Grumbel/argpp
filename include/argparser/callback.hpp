@@ -31,7 +31,7 @@ public:
 
   virtual ~Callback() = default;
 
-  void call() {
+  void call() const {
     if (m_callback) {
       m_callback();
     }

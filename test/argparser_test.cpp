@@ -48,8 +48,10 @@ int main(int argc, char** argv)
     argp.add_alias("hilfe", argp.lookup_long_option("help"));
     argp.add_option({}, "long-only", Argument("ARG"), "Blabla");
 
+    //argp.add_option('c', "complex", Argument<int,int,int>("X:Y:Z"), "Blabla");
+
     std::optional<std::string> stringvar;
-    argp.add_option('s', {}, Argument("ARG"), "Blabla").store(stringvar);
+    argp.add_option('X', {}, Argument("ARG"), "Blabla").store(stringvar);
 
     argp.add_group("Options with arguments:");
     argp.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File").then([](auto const& path) {
