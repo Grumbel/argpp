@@ -36,14 +36,13 @@ function(build_dependencies)
 endfunction()
 build_dependencies()
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 file(GLOB ARGPARSER_SOURCES src/*.cpp)
 add_library(argparser STATIC
   ${ARGPARSER_SOURCES})
+set_target_properties(argparser PROPERTIES
+  CXX_STANDARD 20
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF)
 target_include_directories(argparser PUBLIC include/ include/argparser/ src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(argparser PUBLIC fmt::fmt strut)
@@ -52,11 +51,14 @@ set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp"
 if(BUILD_TESTS)
   enable_testing()
 
-  file(GLOB TEST_ARGPARSER_SOURCES test/*_test.cpp)
-
-  foreach(SRC ${TEST_ARGPARSER_SOURCES})
+  file(GLOB EXAMPLE_ARGPARSER_SOURCES test/*_example.cpp)
+  foreach(SRC ${EXAMPLE_ARGPARSER_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
     add_executable(${SRC_BASENAME} ${SRC})
+    set_target_properties(${SRC_BASENAME} PROPERTIES
+      CXX_STANDARD 20
+      CXX_STANDARD_REQUIRED ON
+      CXX_EXTENSIONS OFF)
     target_link_libraries(${SRC_BASENAME} argparser)
     target_compile_options(${SRC_BASENAME} PRIVATE ${WARNINGS_CXX_FLAGS})
 
@@ -64,6 +66,24 @@ if(BUILD_TESTS)
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
       COMMAND "${SRC_BASENAME}")
   endforeach()
+
+  find_package(GTest REQUIRED)
+
+  file(GLOB TEST_ARGPARSER_SOURCES test/*_test.cpp)
+  add_executable(test_argparser ${TEST_ARGPARSER_SOURCES})
+  set_target_properties(test_argparser PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF)
+  target_compile_options(test_argparser PRIVATE ${WARNINGS_CXX_FLAGS})
+  target_link_libraries(test_argparser
+    argparser
+    GTest::GTest
+    GTest::Main)
+
+    add_test(NAME test_argparser
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      COMMAND test_argparser)
 endif()
 
 install(TARGETS argparser
