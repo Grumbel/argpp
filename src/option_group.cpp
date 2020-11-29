@@ -29,7 +29,9 @@ namespace argparser {
 OptionGroup::OptionGroup() :
   m_items(),
   m_short_options(),
-  m_long_options()
+  m_long_options(),
+  m_positionals(),
+  m_rest(nullptr)
 {
 }
 
@@ -123,7 +125,7 @@ OptionGroup::add_long_option(std::string name, Option const& option)
   m_long_options[name] = &option;
 }
 
-CommandItem&
+CommandItem const&
 OptionGroup::lookup_command(std::string_view name) const
 {
   for (auto& item : m_items) {
@@ -137,7 +139,7 @@ OptionGroup::lookup_command(std::string_view name) const
   throw Error(fmt::format("command item '{}' not found", name));
 }
 
-PositionalItem&
+PositionalItem const&
 OptionGroup::lookup_positional(int i) const
 {
   int positional_count = 0;
@@ -151,6 +153,13 @@ OptionGroup::lookup_positional(int i) const
     }
   }
   throw Error(fmt::format("positional item {} not found", i));
+}
+
+RestItem const&
+OptionGroup::lookup_rest() const
+{
+  assert(m_rest);
+  return *m_rest;
 }
 
 Option const&
@@ -176,12 +185,7 @@ OptionGroup::lookup_long_option(std::string_view name) const
 bool
 OptionGroup::has_options() const
 {
-  for (auto const& item : m_items) {
-    if (dynamic_cast<Option*>(item.get()) != nullptr) {
-      return true;
-    }
-  }
-  return false;
+  return !m_short_options.empty() || !m_long_options.empty();
 }
 
 bool
@@ -198,23 +202,19 @@ OptionGroup::has_commands() const
 bool
 OptionGroup::has_positional() const
 {
-  for (auto const& item : m_items) {
-    if (dynamic_cast<PositionalItem*>(item.get()) != nullptr) {
-      return true;
-    }
-  }
-  return false;
+  return !m_positionals.empty();
+}
+
+int
+OptionGroup::get_positional_count() const
+{
+  return static_cast<int>(m_positionals.size());
 }
 
 bool
 OptionGroup::has_rest() const
 {
-  for (auto const& item : m_items) {
-    if (dynamic_cast<RestItem*>(item.get()) != nullptr) {
-      return true;
-    }
-  }
-  return false;
+  return m_rest != nullptr;
 }
 
 } // namespace argparser

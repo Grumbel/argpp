@@ -56,6 +56,7 @@ public:
     auto positional_item = std::make_unique<TPositionalItem<T>>(std::move(argument), std::move(help));
     auto& positional_item_ref = *positional_item;
     m_items.emplace_back(std::move(positional_item));
+    m_positionals.emplace_back(&positional_item_ref);
     return positional_item_ref;
   }
 
@@ -69,6 +70,7 @@ public:
     auto rest_item = std::make_unique<TRestItem<T>>(std::move(argument), std::move(help));
     auto& rest_item_ref = *rest_item;
     m_items.emplace_back(std::move(rest_item));
+    m_rest = &rest_item_ref;
     return rest_item_ref;
   }
 
@@ -90,15 +92,18 @@ public:
     return dynamic_cast<TOptionWithArg<T>&>(add_option(std::move(opt)));
   }
 
-  CommandItem& lookup_command(std::string_view name) const;
-  PositionalItem& lookup_positional(int i) const;
+  CommandItem const& lookup_command(std::string_view name) const;
   Option const& lookup_short_option(char name) const;
   Option const& lookup_long_option(std::string_view name) const;
+  PositionalItem const& lookup_positional(int i) const;
+  RestItem const& lookup_rest() const;
 
   bool has_options() const;
   bool has_commands() const;
   bool has_positional() const;
   bool has_rest() const;
+
+  int get_positional_count() const;
 
   std::vector<std::unique_ptr<Item> > const& get_items() const { return m_items; }
 
@@ -111,6 +116,12 @@ private:
   std::vector<std::unique_ptr<Item> > m_items;
   std::unordered_map<char, Option const*> m_short_options;
   std::unordered_map<std::string, Option const*> m_long_options;
+  std::vector<PositionalItem const*> m_positionals;
+  RestItem const* m_rest;
+
+private:
+  OptionGroup(const OptionGroup&) = delete;
+  OptionGroup& operator=(const OptionGroup&) = delete;
 };
 
 } // namespace argparser

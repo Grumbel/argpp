@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <memory>
+#include <span>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -41,15 +42,16 @@ public:
   void print_help(CommandItem const& command_item, std::ostream& out = std::cout) const;
 
   void parse_args(int argc, char const* const* argv);
+  void parse_args(std::span<char const* const> argv);
 
 private:
   void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out = std::cout) const;
   void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
 
-  void parse_args(ParseContext& ctx, OptionGroup& group);
-  void parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_view arg);
-  void parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_view arg);
-  void parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view arg);
+  void parse_args(ParseContext& ctx, OptionGroup const& group);
+  void parse_long_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
+  void parse_short_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
+  void parse_non_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
 
 private:
   std::string m_program;

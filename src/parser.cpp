@@ -98,12 +98,18 @@ Parser::add_program(std::string_view program)
 void
 Parser::parse_args(int argc, char const* const* argv)
 {
-  ParseContext ctx(std::span<char const* const>(argv, argc));
+  parse_args(std::span<char const* const>(argv, argc));
+}
+
+void
+Parser::parse_args(std::span<char const* const> argv)
+{
+  ParseContext ctx(argv);
   parse_args(ctx, *this);
 }
 
 void
-Parser::parse_args(ParseContext& ctx, OptionGroup& group)
+Parser::parse_args(ParseContext& ctx, OptionGroup const& group)
 {
   while (ctx.next())
   {
@@ -141,10 +147,10 @@ Parser::parse_args(ParseContext& ctx, OptionGroup& group)
 }
 
 void
-Parser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
+Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg)
 {
   if (group.has_commands()) {
-    CommandItem& command_item = group.lookup_command(arg);
+    CommandItem const& command_item = group.lookup_command(arg);
     parse_args(ctx, command_item.get_options());
   } else {
     if (group.has_positional()) {
@@ -161,7 +167,7 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup& group, std::string_view
 }
 
 void
-Parser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
+Parser::parse_long_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg)
 {
   std::string_view opt = arg.substr(2);
   std::string::size_type const equal_pos = opt.find('=');
@@ -192,7 +198,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup& group, std::string_vie
 }
 
 void
-Parser::parse_short_option(ParseContext& ctx, OptionGroup& group, std::string_view arg)
+Parser::parse_short_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg)
 {
   std::string_view const opts = arg.substr(1);
 
