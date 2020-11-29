@@ -57,7 +57,7 @@ public:
   ParseContext(std::span<char const* const> argv) :
     m_idx(0),
     m_argv(std::move(argv)),
-    m_positional_counter(0)
+    m_positional_index(0)
   {}
 
   std::string_view arg() const {
@@ -75,13 +75,13 @@ public:
 
   std::string_view program() const { return m_argv[0]; }
 
-  void incr_positional_counter() { m_positional_counter += 1; }
-  int get_positional_counter() const { return m_positional_counter; }
+  void incr_positional_index() { m_positional_index += 1; }
+  int get_positional_index() const { return m_positional_index; }
 
 private:
   size_t m_idx;
   std::span<char const* const> m_argv;
-  int m_positional_counter;
+  int m_positional_index;
 };
 
 Parser::Parser() :
@@ -153,16 +153,28 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::strin
     CommandItem const& command_item = group.lookup_command(arg);
     parse_args(ctx, command_item.get_options());
   } else {
-    if (group.has_positional()) {
+    if (ctx.get_positional_index() < group.get_positional_count() ) {
+      PositionalItem const& item = group.lookup_positional(ctx.get_positional_index());
       try {
-        PositionalItem& item = group.lookup_positional(ctx.get_positional_counter());
-        item.call(arg); // FIXME: throw something useful when the conversion fails
-        ctx.incr_positional_counter();
+        item.call(arg);
+      } catch (std::exception const& err) {
+        throw Error(fmt::format("invalid positional item at {}: {}: {}", ctx.get_positional_index(), arg, err.what()));
       } catch (...) {
-        throw Error(fmt::format("unknown item in position {}: {}", ctx.get_positional_counter(), arg));
+        std::throw_with_nested(Error(fmt::format("invalid positional item at position {}: {}", ctx.get_positional_index(), arg)));
       }
+      ctx.incr_positional_index();
+    } else if (group.has_rest()) {
+      RestItem const& item = group.lookup_rest();
+      try {
+        item.call(arg);
+      } catch (std::exception const& err) {
+        throw Error(fmt::format("invalid rest item at {}: {}: {}", ctx.get_positional_index(), arg, err.what()));
+      } catch (...) {
+        std::throw_with_nested(Error(fmt::format("invalid rest item at {}: {}", ctx.get_positional_index(), arg)));
+      }
+    } else {
+      throw Error(fmt::format("unknown item in position {}: {}", ctx.get_positional_index(), arg));
     }
-    //if (group.has_positional()) {
   }
 }
 
@@ -237,7 +249,7 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
 
     for (auto const& item : group.get_items()) {
       if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
-        out << " " << rest_item->get_name();
+        out << " [" << rest_item->get_name() << "]...";
       }
     }
   };
