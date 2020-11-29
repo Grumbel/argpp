@@ -40,7 +40,7 @@ public:
   void print_help(std::ostream& out = std::cout) const;
   void print_help(CommandItem const& command_item, std::ostream& out = std::cout) const;
 
-  void parse_args(int argc, char** argv);
+  void parse_args(int argc, char const* const* argv);
 
 private:
   void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out = std::cout) const;

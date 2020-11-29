@@ -54,9 +54,9 @@ int get_terminal_width()
 class ParseContext
 {
 public:
-  ParseContext(int argc, char** argv) :
+  ParseContext(std::span<char const* const> argv) :
     m_idx(0),
-    m_argv(argv, argc),
+    m_argv(std::move(argv)),
     m_positional_counter(0)
   {}
 
@@ -80,7 +80,7 @@ public:
 
 private:
   size_t m_idx;
-  std::span<char*> m_argv;
+  std::span<char const* const> m_argv;
   int m_positional_counter;
 };
 
@@ -96,9 +96,9 @@ Parser::add_program(std::string_view program)
 }
 
 void
-Parser::parse_args(int argc, char** argv)
+Parser::parse_args(int argc, char const* const* argv)
 {
-  ParseContext ctx(argc, argv);
+  ParseContext ctx(std::span<char const* const>(argv, argc));
   parse_args(ctx, *this);
 }
 
