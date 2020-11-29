@@ -78,7 +78,7 @@ public:
                                std::optional<std::string> long_name,
                                std::string help)
   {
-    auto opt = std::make_unique<OptionWithoutArg>(std::move(short_name), std::move(long_name), std::move(help));
+    auto opt = std::make_unique<OptionWithoutArg>(short_name, std::move(long_name), std::move(help));
     return dynamic_cast<OptionWithoutArg&>(add_option(std::move(opt)));
   }
 
@@ -88,7 +88,7 @@ public:
                                 Argument<T> argument,
                                 std::string help)
   {
-    auto opt = std::make_unique<TOptionWithArg<T>>(std::move(short_name), std::move(long_name), std::move(argument), std::move(help));
+    auto opt = std::make_unique<TOptionWithArg<T>>(short_name, std::move(long_name), std::move(argument), std::move(help));
     return dynamic_cast<TOptionWithArg<T>&>(add_option(std::move(opt)));
   }
 
@@ -119,7 +119,7 @@ private:
   std::vector<PositionalItem const*> m_positionals;
   RestItem const* m_rest;
 
-private:
+public:
   OptionGroup(const OptionGroup&) = delete;
   OptionGroup& operator=(const OptionGroup&) = delete;
 };

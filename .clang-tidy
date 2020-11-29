@@ -17,6 +17,7 @@ Checks: >
   -readability-redundant-member-init,
   -readability-convert-member-functions-to-static,
   -readability-redundant-access-specifiers,
+  -modernize-use-default-member-init,
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*hpp'
 AnalyzeTemporaryDtors: true

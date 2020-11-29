@@ -77,7 +77,7 @@ class TOptionWithArg : public OptionWithArg,
 {
 public:
   TOptionWithArg(std::optional<char> short_name,
-                 std::optional<std::string> long_name,
+                 std::optional<std::string> long_name, // NOLINT
                  Argument<T> argument,
                  std::string help) : // NOLINT
     OptionWithArg(short_name, std::move(long_name), std::move(help)),

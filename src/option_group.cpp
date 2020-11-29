@@ -102,7 +102,7 @@ OptionGroup::add_alias(char name, Option const& option)
 void
 OptionGroup::add_alias(std::string name, Option const& option)
 {
-  add_long_option(name, option);
+  add_long_option(std::move(name), option);
 }
 
 void
@@ -122,13 +122,13 @@ OptionGroup::add_long_option(std::string name, Option const& option)
     throw Error(fmt::format("duplicate long option '{}'", name));
   }
 
-  m_long_options[name] = &option;
+  m_long_options[std::move(name)] = &option;
 }
 
 CommandItem const&
 OptionGroup::lookup_command(std::string_view name) const
 {
-  for (auto& item : m_items) {
+  for (auto const& item : m_items) {
     Item* ptr = item.get();
     if (auto* command_item = dynamic_cast<CommandItem*>(ptr)) {
       if (command_item->get_name() == name) {
@@ -143,7 +143,7 @@ PositionalItem const&
 OptionGroup::lookup_positional(int i) const
 {
   int positional_count = 0;
-  for (auto& item : m_items) {
+  for (auto const& item : m_items) {
     Item* ptr = item.get();
     if (auto* positional_item = dynamic_cast<PositionalItem*>(ptr)) {
       if (positional_count == i) {

@@ -56,7 +56,7 @@ class ParseContext
 public:
   ParseContext(std::span<char const* const> argv) :
     m_idx(0),
-    m_argv(std::move(argv)),
+    m_argv(argv),
     m_positional_index(0)
   {}
 

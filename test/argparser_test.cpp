@@ -23,9 +23,9 @@ void run_test(std::span<char const* const> argv, Mock& mock)
 {
   ArgParser argp;
   argp.add_option('h', "help", "Display help").then([&]{ mock.call("help"); });
-  argp.add_positional(Argument<std::string>("POS1")).then([&](std::string){ mock.call("pos1"); });
-  argp.add_positional(Argument<std::string>("POS2")).then([&](std::string){ mock.call("pos2"); });
-  argp.add_rest(Argument<std::string>("REST")).then([&](std::string){ mock.call("rest"); });
+  argp.add_positional(Argument<std::string>("POS1")).then([&](std::string const& /* unused */){ mock.call("pos1"); });
+  argp.add_positional(Argument<std::string>("POS2")).then([&](std::string const& /* unused */){ mock.call("pos2"); });
+  argp.add_rest(Argument<std::string>("REST")).then([&](std::string const& /* unused */){ mock.call("rest"); });
 
   argp.parse_args(argv);
 }
