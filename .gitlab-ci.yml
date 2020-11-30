@@ -30,6 +30,7 @@ before_script:
     g++-10
     clang-10
     clang-tidy-10
+    libgtest-dev
     libfmt-dev
 
 .build_argparser_template: &build_argparser
