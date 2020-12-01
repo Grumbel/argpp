@@ -36,28 +36,28 @@ OptionGroup::OptionGroup() :
 }
 
 void
-OptionGroup::add_group(std::string name)
+OptionGroup::add_group(std::string name, Flags const& flags)
 {
-  add_newline();
-  m_items.push_back(std::make_unique<TextItem>(std::move(name)));
+  add_newline(flags);
+  m_items.push_back(std::make_unique<TextItem>(std::move(name), flags));
 }
 
 void
-OptionGroup::add_text(std::string text)
+OptionGroup::add_text(std::string text, Flags const& flags)
 {
-  m_items.push_back(std::make_unique<TextItem>(std::move(text)));
+  m_items.push_back(std::make_unique<TextItem>(std::move(text), flags));
 }
 
 void
-OptionGroup::add_newline()
+OptionGroup::add_newline(Flags const& flags)
 {
-  m_items.push_back(std::make_unique<TextItem>(""));
+  m_items.push_back(std::make_unique<TextItem>("", flags));
 }
 
 void
-OptionGroup::add_pseudo(std::string name, std::string help)
+OptionGroup::add_pseudo(std::string name, std::string help, Flags const& flags)
 {
-  m_items.push_back(std::make_unique<PseudoItem>(std::move(name), std::move(help)));
+  m_items.push_back(std::make_unique<PseudoItem>(std::move(name), std::move(help), flags));
 }
 
 Option&
@@ -77,7 +77,7 @@ OptionGroup::add_option(std::unique_ptr<Option> option)
 }
 
 CommandItem&
-OptionGroup::add_command(std::string name, std::string help)
+OptionGroup::add_command(std::string name, std::string help, Flags const& flags)
 {
   for (auto const& item : m_items) {
     if (dynamic_cast<PositionalItem*>(item.get()) != nullptr ||
@@ -87,7 +87,7 @@ OptionGroup::add_command(std::string name, std::string help)
     }
   }
 
-  auto command_item = std::make_unique<CommandItem>(std::move(name), std::move(help));
+  auto command_item = std::make_unique<CommandItem>(std::move(name), std::move(help), flags);
   CommandItem& command_item_ref = *command_item;
   m_items.push_back(std::move(command_item));
   return command_item_ref;

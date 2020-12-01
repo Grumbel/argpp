@@ -27,7 +27,8 @@ namespace argparser {
 class CommandItem : public Item
 {
 public:
-  CommandItem(std::string name, std::string help) :
+  CommandItem(std::string name, std::string help, Flags const& flags) :
+    Item(flags),
     m_name(std::move(name)),
     m_help(std::move(help)),
     m_options()

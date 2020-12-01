@@ -14,30 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ITEM_HPP
-#define HEADER_ARGPARSER_ITEM_HPP
+#ifndef HEADER_ARGPARSER_FLAGS_HPP
+#define HEADER_ARGPARSER_FLAGS_HPP
 
-#include <assert.h>
-#include <functional>
-#include <string_view>
-#include <variant>
-#include <vector>
-
-#include "flags.hpp"
+#include <stdint.h>
 
 namespace argparser {
 
-class Item
+class Flags
 {
 public:
-  Item(Flags const& flags) : m_flags(flags)
+  Flags() :
+    m_required(false),
+    m_visibility_mask(1),
+    m_mutual_exclusion_mask(0)
   {}
-  virtual ~Item() = default;
 
-  Flags const& get_flags() const { return m_flags; }
+  Flags& required() { m_required = true; return *this; }
+  Flags& visibility(uint32_t mask) { m_visibility_mask = mask; return *this; }
+  Flags mutual_exclusion(uint32_t mask) { m_mutual_exclusion_mask = mask; return *this; }
 
-protected:
-  Flags m_flags;
+  bool is_required() const { return m_required; }
+  uint32_t get_visibility() const { return m_visibility_mask; }
+  uint32_t get_mutual_exclusion() const { return m_mutual_exclusion_mask; }
+
+private:
+  bool m_required;
+  uint32_t m_visibility_mask;
+  uint32_t m_mutual_exclusion_mask;
 };
 
 } // namespace argparser

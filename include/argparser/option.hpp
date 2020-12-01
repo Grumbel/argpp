@@ -31,7 +31,8 @@ namespace argparser {
 class Option : public Item
 {
 public:
-  Option(std::optional<char> short_name, std::optional<std::string> long_name, std::string help) :
+  Option(std::optional<char> short_name, std::optional<std::string> long_name, std::string help, Flags const& flags) :
+    Item(flags),
     m_short_name(short_name),
     m_long_name(std::move(long_name)),
     m_help(std::move(help))
@@ -56,8 +57,9 @@ class OptionWithoutArg : public Option,
 public:
   OptionWithoutArg(std::optional<char> short_name,
                    std::optional<std::string> long_name,
-                   std::string help) :
-    Option(short_name, std::move(long_name), std::move(help))
+                   std::string help,
+                   Flags const& flags) :
+    Option(short_name, std::move(long_name), std::move(help), flags)
   {}
 
   bool requires_argument() const override { return false; }
@@ -79,8 +81,9 @@ public:
   TOptionWithArg(std::optional<char> short_name,
                  std::optional<std::string> long_name, // NOLINT
                  Argument<T> argument,
-                 std::string help) : // NOLINT
-    OptionWithArg(short_name, std::move(long_name), std::move(help)),
+                 std::string help, // NOLINT
+                 Flags const& flags) :
+    OptionWithArg(short_name, std::move(long_name), std::move(help), flags),
     CallbackWithArg<T>(argument),
     m_argument(std::move(argument))
   {}

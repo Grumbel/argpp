@@ -24,7 +24,8 @@ namespace argparser {
 class LongOptionAlias : public Item
 {
 public:
-  LongOptionAlias(std::string name, Option& option) :
+  LongOptionAlias(std::string name, Option& option, Flags const& flags) :
+    Item(flags),
     m_name(std::move(name)),
     m_option(option)
   {}
@@ -40,7 +41,8 @@ private:
 class ShortOptionAlias : public Item
 {
 public:
-  ShortOptionAlias(char name, Option& option) :
+  ShortOptionAlias(char name, Option& option, Flags const& flags) :
+    Item(flags),
     m_name(name),
     m_option(option)
   {}

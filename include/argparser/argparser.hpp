@@ -19,6 +19,7 @@
 
 #include "argument.hpp"
 #include "command_item.hpp"
+#include "flags.hpp"
 #include "option_group.hpp"
 #include "parser.hpp"
 

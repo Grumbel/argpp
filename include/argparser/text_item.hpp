@@ -22,7 +22,8 @@ namespace argparser {
 class TextItem : public Item
 {
 public:
-  TextItem(std::string text) :
+  TextItem(std::string text, Flags const& flags) :
+    Item(flags),
     m_text(std::move(text))
   {}
 
@@ -35,7 +36,8 @@ private:
 class PseudoItem : public Item
 {
 public:
-  PseudoItem(std::string name, std::string help) :
+  PseudoItem(std::string name, std::string help, Flags const& flags) :
+    Item(flags),
     m_name(std::move(name)),
     m_help(std::move(help))
   {}

@@ -39,21 +39,21 @@ public:
   OptionGroup();
   ~OptionGroup() = default;
 
-  void add_text(std::string text);
-  void add_newline();
-  void add_group(std::string name);
+  void add_text(std::string text, Flags const& flags = {});
+  void add_newline(Flags const& flags = {});
+  void add_group(std::string name, Flags const& flags = {});
 
-  void add_pseudo(std::string name, std::string help);
+  void add_pseudo(std::string name, std::string help, Flags const& flags = {});
 
   void add_alias(char name, Option const& option);
   void add_alias(std::string name, Option const& option);
 
-  CommandItem& add_command(std::string name, std::string help);
+  CommandItem& add_command(std::string name, std::string help, Flags const& flags = {});
 
   template<typename T>
-  TPositionalItem<T>& add_positional(Argument<T> argument, std::string help = {})
+  TPositionalItem<T>& add_positional(Argument<T> argument, std::string help = {}, Flags const& flags = {})
   {
-    auto positional_item = std::make_unique<TPositionalItem<T>>(std::move(argument), std::move(help));
+    auto positional_item = std::make_unique<TPositionalItem<T>>(std::move(argument), std::move(help), flags);
     auto& positional_item_ref = *positional_item;
     m_items.emplace_back(std::move(positional_item));
     m_positionals.emplace_back(&positional_item_ref);
@@ -61,13 +61,13 @@ public:
   }
 
   template<typename T>
-  TRestItem<T>& add_rest(Argument<T> argument, std::string help = {})
+  TRestItem<T>& add_rest(Argument<T> argument, std::string help = {}, Flags const& flags = {})
   {
     if (has_rest()) {
       throw Error("only one rest argument allowed");
     }
 
-    auto rest_item = std::make_unique<TRestItem<T>>(std::move(argument), std::move(help));
+    auto rest_item = std::make_unique<TRestItem<T>>(std::move(argument), std::move(help), flags);
     auto& rest_item_ref = *rest_item;
     m_items.emplace_back(std::move(rest_item));
     m_rest = &rest_item_ref;
@@ -76,9 +76,10 @@ public:
 
   OptionWithoutArg& add_option(std::optional<char> short_name,
                                std::optional<std::string> long_name,
-                               std::string help)
+                               std::string help,
+                               Flags const& flags = {})
   {
-    auto opt = std::make_unique<OptionWithoutArg>(short_name, std::move(long_name), std::move(help));
+    auto opt = std::make_unique<OptionWithoutArg>(short_name, std::move(long_name), std::move(help), flags);
     return dynamic_cast<OptionWithoutArg&>(add_option(std::move(opt)));
   }
 
@@ -86,9 +87,10 @@ public:
   TOptionWithArg<T>& add_option(std::optional<char> short_name,
                                 std::optional<std::string> long_name,
                                 Argument<T> argument,
-                                std::string help)
+                                std::string help,
+                                Flags const& flags = {})
   {
-    auto opt = std::make_unique<TOptionWithArg<T>>(short_name, std::move(long_name), std::move(argument), std::move(help));
+    auto opt = std::make_unique<TOptionWithArg<T>>(short_name, std::move(long_name), std::move(argument), std::move(help), flags);
     return dynamic_cast<TOptionWithArg<T>&>(add_option(std::move(opt)));
   }
 

@@ -27,7 +27,12 @@ int main(int argc, char** argv)
     int verbose = 0;
 
     using argparser::Argument;
+    using argparser::Flags;
     argparser::ArgParser argp;
+
+    constexpr uint32_t EXTRA_VERBOSE = 1<<1;
+
+    constexpr uint32_t ONLY_ONE = 1<<1;
 
     argp.add_program(argv[0]);
 
@@ -43,35 +48,38 @@ int main(int argc, char** argv)
     argp.add_group("Options:");
     argp.add_option('v', "version", "Version");
     argp.add_option('V', "verbose", "Version").increment(verbose);
-    argp.add_option('h', "help", "Help text").then([&]{ argp.print_help(); });
-    argp.add_alias('H', argp.lookup_short_option('h'));
+    argp.add_option('h', "help", "Help text").then([&]{ argp.print_help(std::cout, 1u); });
+    argp.add_option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
     argp.add_alias("hilfe", argp.lookup_long_option("help"));
     argp.add_option({}, "long-only", Argument("ARG"), "Blabla");
 
     //argp.add_option('c', "complex", Argument<int,int,int>("X:Y:Z"), "Blabla");
 
     std::optional<std::string> stringvar;
-    argp.add_option('X', {}, Argument("ARG"), "Blabla").store(stringvar);
+    argp.add_option('z', {}, Argument("ARG"), "Blabla").store(stringvar);
 
     argp.add_group("Options with arguments:");
-    argp.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File").then([](auto const& path) {
-      std::cout << "Got path: " << path << std::endl;
-    });
-    argp.add_option('n', "number", Argument<int>("FILE"), "Number").then([](int number) {
-      std::cout << "Got int: " << number << std::endl;
-    });
+    argp.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File", Flags().mutual_exclusion(ONLY_ONE))
+      .then([](auto const& path)
+      {
+        std::cout << "Got path: " << path << std::endl;
+      });
+    argp.add_option('n', "number", Argument<int>("FILE"), "Number", Flags().mutual_exclusion(ONLY_ONE))
+      .then([](int number) {
+        std::cout << "Got int: " << number << std::endl;
+      });
 
     argp.add_option('t', "text", Argument("FILE"), "Number").then([](std::string_view text) {
       std::cout << "Got text: " << text << std::endl;
     });
 
-    //auto& group = argp.add_group("Display Options:");
-    //gcmd = add_command("install");
-    //group.add_option("+v", "--version", "", "Help text");
-    //group.add_option({"+v", "+version", Argument::NONE, "Help text"}).then([]{ .... });
-    //group.add_option("-v", "-version", "Help text").store(&var, true);
-    //group.add_option("-v", "-version", "Help text").store(&var, true);
+    argp.add_group("Extra Options:", Flags().visibility(EXTRA_VERBOSE));
+    argp.add_option('X', "xeno", "Xeno Help", Flags().visibility(EXTRA_VERBOSE));
+    argp.add_option('Y', "yavi", "Yavi Help", Flags().visibility(EXTRA_VERBOSE));
+    argp.add_option('Z', "zulu", "Zulu Help", Flags().visibility(EXTRA_VERBOSE));
+
     int var = 0;
+    argp.add_group("Store Test:");
     argp.add_option('s', "store", "Help text").store(var, 5);
     argp.add_option('S', "no-store", "Help text").store(var, -10);
     //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").append(&var);
@@ -105,7 +113,7 @@ int main(int argc, char** argv)
     search_opts.add_option('d', "device", "Blabla");
 
     search_opts.add_group("Positonal Arguments:");
-    search_opts.add_positional(Argument("FLUB"), "File to load");
+    search_opts.add_positional(Argument("FLUB"), "File to load", Flags().required());
     search_opts.add_positional(Argument("BLOB"), "Output file");
 
     search_opts.add_group("Rest Arguments:");

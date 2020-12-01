@@ -24,7 +24,9 @@ namespace argparser {
 class RestItem : public Item
 {
 public:
-  RestItem() = default;
+  RestItem(Flags const& flags) :
+    Item(flags)
+  {}
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;
@@ -36,7 +38,8 @@ class TRestItem : public RestItem,
                   public CallbackWithArg<T>
 {
 public:
-  TRestItem(Argument<T> argument, std::string help) :
+  TRestItem(Argument<T> argument, std::string help, Flags const& flags) :
+    RestItem(flags),
     CallbackWithArg<T>(argument),
     m_argument(argument),
     m_help(std::move(help))

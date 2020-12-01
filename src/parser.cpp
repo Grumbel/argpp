@@ -234,6 +234,12 @@ Parser::parse_short_option(ParseContext& ctx, OptionGroup const& group, std::str
 }
 
 void
+Parser::print_usage(std::ostream& out) const
+{
+  print_usage(nullptr, out);
+}
+
+void
 Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) const
 {
   auto print_group = [&](OptionGroup const& group) {
@@ -243,13 +249,21 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
 
     for (auto const& item : group.get_items()) {
       if (auto* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
-        out << " " << positional_item->get_name();
+        if (positional_item->get_flags().is_required()) {
+          out << " " << positional_item->get_name();
+        } else {
+          out << " [" << positional_item->get_name() << "]";
+        }
       }
     }
 
     for (auto const& item : group.get_items()) {
       if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
-        out << " [" << rest_item->get_name() << "]...";
+        if (rest_item->get_flags().is_required()) {
+          out << " " << rest_item->get_name() << "...";
+        } else {
+          out << " [" << rest_item->get_name() << "]...";
+        }
       }
     }
   };
@@ -294,13 +308,13 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
 }
 
 void
-Parser::print_help(CommandItem const& command_item, std::ostream& out) const
+Parser::print_help(CommandItem const& command_item, std::ostream& out, uint32_t visibility_mask) const
 {
-  print_help(command_item.get_options(), &command_item, out);
+  print_help(command_item.get_options(), &command_item, out, visibility_mask);
 }
 
 void
-Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out) const
+Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask) const
 {
   const int terminal_width = std::min(get_terminal_width(), 120);
   const int column_min_width = 8;
@@ -346,6 +360,10 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
 
   for (auto const& item : group.get_items())
   {
+    if ((item->get_flags().get_visibility() & visibility_mask) == 0) {
+      continue;
+    }
+
     if (auto const* text_item = dynamic_cast<TextItem*>(item.get())) {
       pprint.print(text_item->get_text());
     } else if (auto* pseudo_item = dynamic_cast<PseudoItem*>(item.get())) {
@@ -381,9 +399,9 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
 }
 
 void
-Parser::print_help(std::ostream& out) const
+Parser::print_help(std::ostream& out, uint32_t visibility_mask) const
 {
-  print_help(*this, nullptr, out);
+  print_help(*this, nullptr, out, visibility_mask);
 }
 
 } // namespace argparser

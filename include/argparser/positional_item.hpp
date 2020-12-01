@@ -24,7 +24,9 @@ namespace argparser {
 class PositionalItem : public Item
 {
 public:
-  PositionalItem() = default;
+  PositionalItem(Flags const& flags) :
+    Item(flags)
+  {}
   ~PositionalItem() override = default;
 
   virtual std::string const& get_name() const = 0;
@@ -37,7 +39,8 @@ class TPositionalItem : public PositionalItem,
                         public CallbackWithArg<T>
 {
 public:
-  TPositionalItem(Argument<T> argument, std::string help) :
+  TPositionalItem(Argument<T> argument, std::string help, Flags const& flags) :
+    PositionalItem(flags),
     CallbackWithArg<T>(argument),
     m_argument(argument),
     m_help(std::move(help))
