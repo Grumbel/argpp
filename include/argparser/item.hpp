@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "flags.hpp"
+#include "fwd.hpp"
 
 namespace argparser {
 
@@ -34,10 +35,12 @@ public:
   {}
   virtual ~Item() = default;
 
+  virtual void print(PrettyPrinter& printer) = 0;
+
   Flags const& get_flags() const { return m_flags; }
 
 protected:
-  Flags m_flags;
+  Flags m_flags; // NOLINT
 };
 
 } // namespace argparser

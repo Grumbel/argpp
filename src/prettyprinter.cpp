@@ -22,7 +22,8 @@ namespace argparser {
 
 PrettyPrinter::PrettyPrinter(int terminal_width, std::ostream& out) :
   m_terminal_width(terminal_width),
-  m_out(out)
+  m_out(out),
+  m_column_width(0)
 {
 }
 
@@ -30,6 +31,12 @@ void
 PrettyPrinter::print(std::string_view text) const
 {
   print("", "", text);
+}
+
+void
+PrettyPrinter::print(std::string_view initial, std::string_view text) const
+{
+  print(std::string(m_column_width, ' '), initial, text);
 }
 
 void

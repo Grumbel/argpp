@@ -25,6 +25,7 @@ class Item;
 class Option;
 class CommandItem;
 class OptionGroup;
+class PrettyPrinter;
 
 } // namespace argparser
 

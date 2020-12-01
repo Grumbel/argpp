@@ -28,12 +28,16 @@ class PrettyPrinter
 public:
   PrettyPrinter(int terminal_width, std::ostream& out = std::cout);
 
+  void set_column_width(int column_width) { m_column_width = column_width; }
+
   void print(std::string_view text) const;
+  void print(std::string_view initial, std::string_view text) const;
   void print(std::string_view indent, std::string_view initial, std::string_view text) const;
 
 private:
   int m_terminal_width;
   std::ostream& m_out;
+  int m_column_width;
 };
 
 } // namespace argparser

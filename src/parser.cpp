@@ -316,6 +316,7 @@ Parser::print_help(CommandItem const& command_item, std::ostream& out, uint32_t 
 void
 Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask) const
 {
+  // FIXME: move this into PrettyPrinter
   const int terminal_width = std::min(get_terminal_width(), 120);
   const int column_min_width = 8;
   int column_width = column_min_width;
@@ -354,46 +355,14 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
     column_width = std::max(column_width, max_column_width);
   }
 
-  PrettyPrinter pprint(terminal_width); // -1 so we have a whitespace on the right side
+  PrettyPrinter pprinter(terminal_width); // -1 so we have a whitespace on the right side
 
+  pprinter.set_column_width(column_width);
   print_usage(current_command_item, out);
 
-  for (auto const& item : group.get_items())
-  {
-    if ((item->get_flags().get_visibility() & visibility_mask) == 0) {
-      continue;
-    }
-
-    if (auto const* text_item = dynamic_cast<TextItem*>(item.get())) {
-      pprint.print(text_item->get_text());
-    } else if (auto* pseudo_item = dynamic_cast<PseudoItem*>(item.get())) {
-      pprint.print(std::string(column_width, ' '), pseudo_item->get_name(), pseudo_item->get_help());
-    } else if (auto* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
-      pprint.print(std::string(column_width, ' '), "  " + positional_item->get_name(), positional_item->get_help());
-    } else if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
-      pprint.print(std::string(column_width, ' '), "  " + rest_item->get_name(), rest_item->get_help());
-    } else if (auto* opt = dynamic_cast<Option*>(item.get())) {
-      std::string left_column("  ");
-      if (opt->get_short_name() && opt->get_long_name()) {
-        left_column += fmt::format("-{}, --{}", *opt->get_short_name(), *opt->get_long_name());
-      } else if (opt->get_short_name()) {
-        left_column += fmt::format("-{}", *opt->get_short_name());
-      } else /* if (opt->get_long_name()) */ {
-        left_column += fmt::format("--{}", *opt->get_long_name());
-      }
-
-      if (opt->requires_argument()) {
-        left_column += fmt::format("{}{}",
-                                   opt->get_long_name() ? '=' : ' ',
-                                   dynamic_cast<OptionWithArg&>(*opt).get_argument_name());
-      }
-      left_column += " ";
-
-      pprint.print(std::string(column_width, ' '), left_column, opt->get_help());
-    } else if (auto* command_item = dynamic_cast<CommandItem*>(item.get())) {
-      pprint.print(std::string(column_width, ' '), "  " + command_item->get_name(), command_item->get_help());
-    } else {
-      // unhandled items
+  for (auto const& item : group.get_items()) {
+    if (item->get_flags().get_visibility() & visibility_mask) {
+      item->print(pprinter);
     }
   }
 }

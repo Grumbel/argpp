@@ -14,41 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_COMMAND_ITEM_HPP
-#define HEADER_ARGPARSER_COMMAND_ITEM_HPP
-
-#include <string>
-
-#include "item.hpp"
-#include "option_group.hpp"
+#include "option.hpp"
+#include "prettyprinter.hpp"
 
 namespace argparser {
 
-class CommandItem : public Item
+void
+Option::print(PrettyPrinter& pprinter)
 {
-public:
-  CommandItem(std::string name, std::string help, Flags const& flags) :
-    Item(flags),
-    m_name(std::move(name)),
-    m_help(std::move(help)),
-    m_options()
-  {}
+  std::string left_column("  ");
+  if (get_short_name() && get_long_name()) {
+    left_column += fmt::format("-{}, --{}", *get_short_name(), *get_long_name());
+  } else if (get_short_name()) {
+    left_column += fmt::format("-{}", *get_short_name());
+  } else /* if (get_long_name()) */ {
+    left_column += fmt::format("--{}", *get_long_name());
+  }
 
-  void print(PrettyPrinter& pprinter) override;
+  if (requires_argument()) {
+    left_column += fmt::format("{}{}",
+                               get_long_name() ? '=' : ' ',
+                               dynamic_cast<OptionWithArg&>(*this).get_argument_name());
+  }
+  left_column += " ";
 
-  std::string get_name() const { return m_name; }
-  std::string get_help() const { return m_help; }
-  OptionGroup& get_options() { return m_options; }
-  OptionGroup const& get_options() const { return m_options; }
-
-private:
-  std::string m_name;
-  std::string m_help;
-  OptionGroup m_options;
-};
+  pprinter.print(left_column, get_help());
+}
 
 } // namespace argparser
-
-#endif
 
 /* EOF */

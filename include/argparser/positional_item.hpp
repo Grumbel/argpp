@@ -18,6 +18,7 @@
 #define HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
 
 #include "callback_with_arg.hpp"
+#include "item.hpp"
 
 namespace argparser {
 
@@ -28,6 +29,8 @@ public:
     Item(flags)
   {}
   ~PositionalItem() override = default;
+
+  void print(PrettyPrinter& pprinter) override;
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;

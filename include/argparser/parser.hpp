@@ -39,14 +39,14 @@ public:
   void add_program(std::string_view program);
 
   void print_usage(std::ostream& out = std::cout) const;
-  void print_help(std::ostream& out = std::cout, uint32_t groups = ~0) const;
-  void print_help(CommandItem const& command_item, std::ostream& out = std::cout, uint32_t groups = ~0) const;
+  void print_help(std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
+  void print_help(CommandItem const& command_item, std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
 
   void parse_args(int argc, char const* const* argv);
   void parse_args(std::span<char const* const> argv);
 
 private:
-  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t groups) const;
+  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask) const;
   void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
 
   void parse_args(ParseContext& ctx, OptionGroup const& group);

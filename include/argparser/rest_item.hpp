@@ -17,6 +17,8 @@
 #ifndef HEADER_ARGPARSER_REST_ITEM_HPP
 #define HEADER_ARGPARSER_REST_ITEM_HPP
 
+#include "callback_with_arg.hpp"
+#include "fwd.hpp"
 #include "item.hpp"
 
 namespace argparser {
@@ -27,6 +29,8 @@ public:
   RestItem(Flags const& flags) :
     Item(flags)
   {}
+
+  void print(PrettyPrinter& pprinter) override;
 
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;

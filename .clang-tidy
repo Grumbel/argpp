@@ -18,6 +18,7 @@ Checks: >
   -readability-convert-member-functions-to-static,
   -readability-redundant-access-specifiers,
   -modernize-use-default-member-init,
+  -readability-uppercase-literal-suffix,
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*hpp'
 AnalyzeTemporaryDtors: true

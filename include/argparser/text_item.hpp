@@ -17,6 +17,11 @@
 #ifndef HEADER_ARGPARSER_TEXT_ITEM_HPP
 #define HEADER_ARGPARSER_TEXT_ITEM_HPP
 
+#include <string>
+
+#include "fwd.hpp"
+#include "item.hpp"
+
 namespace argparser {
 
 class TextItem : public Item
@@ -26,6 +31,8 @@ public:
     Item(flags),
     m_text(std::move(text))
   {}
+
+  void print(PrettyPrinter& pprinter) override;
 
   std::string const& get_text() const { return m_text; }
 
@@ -41,6 +48,8 @@ public:
     m_name(std::move(name)),
     m_help(std::move(help))
   {}
+
+  void print(PrettyPrinter& pprinter) override;
 
   std::string const& get_name() const { return m_name; }
   std::string const& get_help() const { return m_help; }
