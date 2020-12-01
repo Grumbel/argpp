@@ -54,6 +54,8 @@ private:
   void parse_short_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
   void parse_non_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
 
+  void check_mutual_exclusion(ParseContext& ctx, Item const& item);
+
 private:
   std::string m_program;
 };

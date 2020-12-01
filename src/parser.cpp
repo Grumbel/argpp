@@ -57,7 +57,8 @@ public:
   ParseContext(std::span<char const* const> argv) :
     m_idx(0),
     m_argv(argv),
-    m_positional_index(0)
+    m_positional_index(0),
+    m_mutual_exclusion_state(0u)
   {}
 
   std::string_view arg() const {
@@ -78,10 +79,14 @@ public:
   void incr_positional_index() { m_positional_index += 1; }
   int get_positional_index() const { return m_positional_index; }
 
+  void add_mutual_exclusion_state(uint32_t mask) { m_mutual_exclusion_state |= mask; }
+  uint32_t get_mutual_exclusion_state() const { return m_mutual_exclusion_state; }
+
 private:
   size_t m_idx;
   std::span<char const* const> m_argv;
   int m_positional_index;
+  uint32_t m_mutual_exclusion_state;
 };
 
 Parser::Parser() :
@@ -151,10 +156,12 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::strin
 {
   if (group.has_commands()) {
     CommandItem const& command_item = group.lookup_command(arg);
+    check_mutual_exclusion(ctx, command_item);
     parse_args(ctx, command_item.get_options());
   } else {
     if (ctx.get_positional_index() < group.get_positional_count() ) {
       PositionalItem const& item = group.lookup_positional(ctx.get_positional_index());
+      check_mutual_exclusion(ctx, item);
       try {
         item.call(arg);
       } catch (std::exception const& err) {
@@ -165,6 +172,7 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::strin
       ctx.incr_positional_index();
     } else if (group.has_rest()) {
       RestItem const& item = group.lookup_rest();
+      check_mutual_exclusion(ctx, item);
       try {
         item.call(arg);
       } catch (std::exception const& err) {
@@ -189,6 +197,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup const& group, std::stri
     opt = opt.substr(0, equal_pos);
 
     Option const& option = group.lookup_long_option(opt);
+    check_mutual_exclusion(ctx, option);
     if (option.requires_argument()) {
       dynamic_cast<OptionWithArg const&>(option).call(opt_arg);
     } else {
@@ -198,6 +207,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup const& group, std::stri
   else
   {
     Option const& option = group.lookup_long_option(opt);
+    check_mutual_exclusion(ctx, option);
     if (!option.requires_argument()) {
       dynamic_cast<OptionWithoutArg const&>(option).call();
     } else {
@@ -217,6 +227,7 @@ Parser::parse_short_option(ParseContext& ctx, OptionGroup const& group, std::str
   for (size_t opts_i = 0; opts_i < opts.size(); ++opts_i) {
     char const opt = opts[opts_i];
     Option const& option = group.lookup_short_option(opt);
+    check_mutual_exclusion(ctx, option);
     if (!option.requires_argument()) {
       dynamic_cast<OptionWithoutArg const&>(option).call();
     } else {
@@ -371,6 +382,16 @@ void
 Parser::print_help(std::ostream& out, uint32_t visibility_mask) const
 {
   print_help(*this, nullptr, out, visibility_mask);
+}
+
+void
+Parser::check_mutual_exclusion(ParseContext& ctx, Item const& item)
+{
+  if (ctx.get_mutual_exclusion_state() & item.get_flags().get_mutual_exclusion()) {
+    throw Error("mutual exclusion violation"); // FIXME: add better error message
+  } else {
+    ctx.add_mutual_exclusion_state(item.get_flags().get_mutual_exclusion());
+  }
 }
 
 } // namespace argparser

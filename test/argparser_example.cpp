@@ -46,9 +46,9 @@ int main(int argc, char** argv)
                   "Lengthy description of what the program does. ");
 
     argp.add_group("Options:");
-    argp.add_option('v', "version", "Version");
-    argp.add_option('V', "verbose", "Version").increment(verbose);
-    argp.add_option('h', "help", "Help text").then([&]{ argp.print_help(std::cout, 1u); });
+    argp.add_option('v', "version", "Version", Flags().mutual_exclusion(1u));
+    argp.add_option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
+    argp.add_option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argp.print_help(std::cout, 1u); });
     argp.add_option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
     argp.add_alias("hilfe", argp.lookup_long_option("help"));
     argp.add_option({}, "long-only", Argument("ARG"), "Blabla");
