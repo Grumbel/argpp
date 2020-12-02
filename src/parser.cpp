@@ -18,11 +18,13 @@
 
 #include <fmt/format.h>
 
+#include <map>
 #include <span>
 #include <string_view>
 
 #include "command_item.hpp"
 #include "error.hpp"
+#include "fwd.hpp"
 #include "option_group.hpp"
 #include "parser.hpp"
 #include "positional_item.hpp"
@@ -58,7 +60,8 @@ public:
     m_idx(0),
     m_argv(argv),
     m_positional_index(0),
-    m_mutual_exclusion_state(0u)
+    m_mutual_exclusion_state(0u),
+    m_parsed_arguments()
   {}
 
   std::string_view arg() const {
@@ -82,11 +85,18 @@ public:
   void add_mutual_exclusion_state(uint32_t mask) { m_mutual_exclusion_state |= mask; }
   uint32_t get_mutual_exclusion_state() const { return m_mutual_exclusion_state; }
 
+  void add_parsed_argument(std::string_view arg, Item const& item) {
+    m_parsed_arguments[&item] = arg;
+  }
+
+  std::map<Item const*, std::string_view> const& get_parsed_arguments() const { return m_parsed_arguments; }
+
 private:
   size_t m_idx;
   std::span<char const* const> m_argv;
   int m_positional_index;
   uint32_t m_mutual_exclusion_state;
+  std::map<Item const*, std::string_view> m_parsed_arguments;
 };
 
 Parser::Parser() :
@@ -156,12 +166,12 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::strin
 {
   if (group.has_commands()) {
     CommandItem const& command_item = group.lookup_command(arg);
-    check_mutual_exclusion(ctx, command_item);
+    verify(ctx, arg, command_item);
     parse_args(ctx, command_item.get_options());
   } else {
     if (ctx.get_positional_index() < group.get_positional_count() ) {
       PositionalItem const& item = group.lookup_positional(ctx.get_positional_index());
-      check_mutual_exclusion(ctx, item);
+      verify(ctx, arg, item);
       try {
         item.call(arg);
       } catch (std::exception const& err) {
@@ -172,7 +182,7 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::strin
       ctx.incr_positional_index();
     } else if (group.has_rest()) {
       RestItem const& item = group.lookup_rest();
-      check_mutual_exclusion(ctx, item);
+      verify(ctx, arg, item);
       try {
         item.call(arg);
       } catch (std::exception const& err) {
@@ -197,7 +207,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup const& group, std::stri
     opt = opt.substr(0, equal_pos);
 
     Option const& option = group.lookup_long_option(opt);
-    check_mutual_exclusion(ctx, option);
+    verify(ctx, arg, option);
     if (option.requires_argument()) {
       dynamic_cast<OptionWithArg const&>(option).call(opt_arg);
     } else {
@@ -207,7 +217,7 @@ Parser::parse_long_option(ParseContext& ctx, OptionGroup const& group, std::stri
   else
   {
     Option const& option = group.lookup_long_option(opt);
-    check_mutual_exclusion(ctx, option);
+    verify(ctx, arg, option);
     if (!option.requires_argument()) {
       dynamic_cast<OptionWithoutArg const&>(option).call();
     } else {
@@ -227,7 +237,7 @@ Parser::parse_short_option(ParseContext& ctx, OptionGroup const& group, std::str
   for (size_t opts_i = 0; opts_i < opts.size(); ++opts_i) {
     char const opt = opts[opts_i];
     Option const& option = group.lookup_short_option(opt);
-    check_mutual_exclusion(ctx, option);
+    verify(ctx, arg, option);
     if (!option.requires_argument()) {
       dynamic_cast<OptionWithoutArg const&>(option).call();
     } else {
@@ -385,10 +395,28 @@ Parser::print_help(std::ostream& out, uint32_t visibility_mask) const
 }
 
 void
-Parser::check_mutual_exclusion(ParseContext& ctx, Item const& item)
+Parser::verify(ParseContext& ctx, std::string_view arg, Item const& item)
+{
+  check_mutual_exclusion(ctx, arg, item);
+  ctx.add_parsed_argument(arg, item);
+}
+
+void
+Parser::check_mutual_exclusion(ParseContext& ctx, std::string_view arg, Item const& item)
 {
   if (ctx.get_mutual_exclusion_state() & item.get_flags().get_mutual_exclusion()) {
-    throw Error("mutual exclusion violation"); // FIXME: add better error message
+    // find the option that caused the conflict
+    std::string_view conflict_opt = "<unknown>";
+    for(auto const& parsed_arg : ctx.get_parsed_arguments()) {
+      if (parsed_arg.first->get_flags().get_mutual_exclusion() & item.get_flags().get_mutual_exclusion()) {
+        conflict_opt = parsed_arg.second;
+        break;
+      }
+    }
+
+    std::ostringstream out;
+    out << "option " << arg << " conflicts with " << conflict_opt;
+    throw Error(out.str());
   } else {
     ctx.add_mutual_exclusion_state(item.get_flags().get_mutual_exclusion());
   }
