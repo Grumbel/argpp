@@ -19,6 +19,18 @@
 
 namespace argparser {
 
+std::string
+Option::text() const
+{
+  if (m_short_name) {
+    return fmt::format("-{}", *m_short_name);
+  } else if (m_long_name) {
+    return fmt::format("--{}", *m_long_name);
+  } else {
+    return {};
+  }
+}
+
 void
 Option::print(PrettyPrinter& pprinter)
 {

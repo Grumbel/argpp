@@ -32,6 +32,8 @@ public:
 
   void print(PrettyPrinter& pprinter) override;
 
+  std::string text() const override { return get_name(); }
+
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;
   virtual void call(std::string_view text) const = 0;

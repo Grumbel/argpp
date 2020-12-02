@@ -36,6 +36,7 @@ public:
   virtual ~Item() = default;
 
   virtual void print(PrettyPrinter& printer) = 0;
+  virtual std::string text() const { return {}; }
 
   Flags const& get_flags() const { return m_flags; }
 

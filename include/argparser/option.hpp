@@ -44,6 +44,7 @@ public:
   std::optional<std::string> const& get_long_name() const { return m_long_name; }
 
   void print(PrettyPrinter& printer) override;
+  std::string text() const override;
 
   virtual bool requires_argument() const = 0;
 
