@@ -156,9 +156,21 @@ Parser::parse_args(ParseContext& ctx, OptionGroup const& group)
     }
   }
 
-  // FIXME:
-  // - check if all required option where given
-  // - add mutual exclusion checks
+  // check required arguments
+  for (auto const& item: group.get_items()) {
+    if (item->get_flags().is_required()) {
+      bool found = false;
+      for(auto const& parsed_arg : ctx.get_parsed_arguments()) {
+        if (parsed_arg.first == item.get()) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        throw Error(fmt::format("required argument '{}' not found", item->text()));
+      }
+    }
+  }
 }
 
 void
@@ -414,9 +426,7 @@ Parser::check_mutual_exclusion(ParseContext& ctx, std::string_view arg, Item con
       }
     }
 
-    std::ostringstream out;
-    out << "option " << arg << " conflicts with " << conflict_opt;
-    throw Error(out.str());
+    throw Error(fmt::format("option '{}' conflicts with '{}'", arg, conflict_opt));
   } else {
     ctx.add_mutual_exclusion_state(item.get_flags().get_mutual_exclusion());
   }
