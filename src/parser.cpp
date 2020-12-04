@@ -111,9 +111,9 @@ Parser::Parser() :
 }
 
 void
-Parser::add_program(std::string program)
+Parser::program(std::string program_name)
 {
-  m_program = std::move(program);
+  m_program = std::move(program_name);
 }
 
 void

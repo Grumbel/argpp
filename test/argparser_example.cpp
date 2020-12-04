@@ -34,56 +34,56 @@ int main(int argc, char** argv)
 
     constexpr uint32_t ONLY_ONE = 1<<1;
 
-    argp.add_program(argv[0]);
+    argp.program(argv[0]);
 
-    argp.add_text("Short description of what it does");
-    argp.add_newline();
-    argp.add_text("Lengthy description of what the program does. "
+    argp.text("Short description of what it does");
+    argp.newline();
+    argp.text("Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. ");
 
-    argp.add_group("Options:");
-    argp.add_option('v', "version", "Version", Flags().mutual_exclusion(1u));
-    argp.add_option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
-    argp.add_option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argp.print_help(std::cout, 1u); });
-    argp.add_option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
-    argp.add_alias("hilfe", argp.lookup_long_option("help"));
-    argp.add_option({}, "long-only", Argument("ARG"), "Blabla");
+    argp.group("Options:");
+    argp.option('v', "version", "Version", Flags().mutual_exclusion(1u));
+    argp.option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
+    argp.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argp.print_help(std::cout, 1u); });
+    argp.option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
+    argp.alias("hilfe", argp.lookup_long_option("help"));
+    argp.option({}, "long-only", Argument("ARG"), "Blabla");
 
-    //argp.add_option('c', "complex", Argument<int,int,int>("X:Y:Z"), "Blabla");
+    //argp.option('c', "complex", Argument<int,int,int>("X:Y:Z"), "Blabla");
 
     std::optional<std::string> stringvar;
-    argp.add_option('z', {}, Argument("ARG"), "Blabla").store(stringvar);
+    argp.option('z', {}, Argument("ARG"), "Blabla").store(stringvar);
 
-    argp.add_group("Options with arguments:");
-    argp.add_option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File", Flags().mutual_exclusion(ONLY_ONE))
+    argp.group("Options with arguments:");
+    argp.option('f', "file", Argument<std::filesystem::path>("FILE"), "Do File", Flags().mutual_exclusion(ONLY_ONE))
       .then([](auto const& path)
       {
         std::cout << "Got path: " << path << std::endl;
       });
-    argp.add_option('n', "number", Argument<int>("FILE"), "Number", Flags().mutual_exclusion(ONLY_ONE))
+    argp.option('n', "number", Argument<int>("FILE"), "Number", Flags().mutual_exclusion(ONLY_ONE))
       .then([](int number) {
         std::cout << "Got int: " << number << std::endl;
       });
 
-    argp.add_option('t', "text", Argument("FILE"), "Number").then([](std::string_view text) {
+    argp.option('t', "text", Argument("FILE"), "Number").then([](std::string_view text) {
       std::cout << "Got text: " << text << std::endl;
     });
 
-    argp.add_group("Extra Options:", Flags().visibility(EXTRA_VERBOSE));
-    argp.add_option('X', "xeno", "Xeno Help", Flags().visibility(EXTRA_VERBOSE));
-    argp.add_option('Y', "yavi", "Yavi Help", Flags().visibility(EXTRA_VERBOSE));
-    argp.add_option('Z', "zulu", "Zulu Help", Flags().visibility(EXTRA_VERBOSE));
+    argp.group("Extra Options:", Flags().visibility(EXTRA_VERBOSE));
+    argp.option('X', "xeno", "Xeno Help", Flags().visibility(EXTRA_VERBOSE));
+    argp.option('Y', "yavi", "Yavi Help", Flags().visibility(EXTRA_VERBOSE));
+    argp.option('Z', "zulu", "Zulu Help", Flags().visibility(EXTRA_VERBOSE));
 
     int var = 0;
-    argp.add_group("Store Test:");
-    argp.add_option('s', "store", "Help text").store(var, 5);
-    argp.add_option('S', "no-store", "Help text").store(var, -10);
-    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").append(&var);
-    //group.add_option("-v", "-version", Argument<int>("FILE"), "Help text").then([](ParseContext& ctx, int value){
+    argp.group("Store Test:");
+    argp.option('s', "store", "Help text").store(var, 5);
+    argp.option('S', "no-store", "Help text").store(var, -10);
+    //group.option("-v", "-version", Argument<int>("FILE"), "Help text").append(&var);
+    //group.option("-v", "-version", Argument<int>("FILE"), "Help text").then([](ParseContext& ctx, int value){
     //ctx.raise_exception("illegal option");
     //});
 
@@ -91,50 +91,50 @@ int main(int argc, char** argv)
     //Argument<std::tuple<int, int, std::string>>();
     //Argument<std::vector<int>()
 
-    argp.add_group("Commands:");
-    auto& install_cmd = argp.add_command("install", "Install stuff");
+    argp.group("Commands:");
+    auto& install_cmd = argp.command("install", "Install stuff");
     auto& install_opts = install_cmd.get_options();
-    install_opts.add_text("Install stuff");
+    install_opts.text("Install stuff");
 
-    install_opts.add_group("Options:");
-    install_opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(install_cmd); });
-    install_opts.add_option('n', "number", "Blabla");
-    install_opts.add_option('d', "device", "Blabla");
+    install_opts.group("Options:");
+    install_opts.option('h', "help", "Help text").then([&]{ argp.print_help(install_cmd); });
+    install_opts.option('n', "number", "Blabla");
+    install_opts.option('d', "device", "Blabla");
 
-    install_opts.add_group("Positional arguments:");
-    install_opts.add_positional(Argument("PACKAGE"), "Package to install").then([](std::string_view text){
+    install_opts.group("Positional arguments:");
+    install_opts.positional(Argument("PACKAGE"), "Package to install").then([](std::string_view text){
       std::cout << "Installing package: " << text << "\n";
     });
 
-    auto& search_cmd = argp.add_command("search", "Search stuff");
+    auto& search_cmd = argp.command("search", "Search stuff");
     auto& search_opts = search_cmd.get_options();
-    search_opts.add_option('h', "help", "Help text").then([&]{ argp.print_help(search_cmd); });
-    search_opts.add_option('n', "number", "Blabla");
-    search_opts.add_option('d', "device", "Blabla");
+    search_opts.option('h', "help", "Help text").then([&]{ argp.print_help(search_cmd); });
+    search_opts.option('n', "number", "Blabla");
+    search_opts.option('d', "device", "Blabla");
 
-    search_opts.add_group("Positonal Arguments:");
-    search_opts.add_positional(Argument("FLUB"), "File to load", Flags().required());
-    search_opts.add_positional(Argument("BLOB"), "Output file");
+    search_opts.group("Positonal Arguments:");
+    search_opts.positional(Argument("FLUB"), "File to load", Flags().required());
+    search_opts.positional(Argument("BLOB"), "Output file");
 
-    search_opts.add_group("Rest Arguments:");
-    search_opts.add_rest(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
+    search_opts.group("Rest Arguments:");
+    search_opts.rest(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
 
     /*
-    argp.add_newline();
-    argp.add_group("Positional Arguments:");
-    argp.add_positional(Argument("FLUB"), "File to load").then([](std::string_view text){
+    argp.newline();
+    argp.group("Positional Arguments:");
+    argp.positional(Argument("FLUB"), "File to load").then([](std::string_view text){
       std::cout << "flub: " << text << std::endl;
     });
-    argp.add_positional(Argument<std::filesystem::path>("BLOB"), "Output file").then([](std::filesystem::path const& text){
+    argp.positional(Argument<std::filesystem::path>("BLOB"), "Output file").then([](std::filesystem::path const& text){
       std::cout << "blob: " << text << std::endl;
     });
-    argp.add_positional(Argument<int>("NUMBER"), "a number file").then([](int number){
+    argp.positional(Argument<int>("NUMBER"), "a number file").then([](int number){
       std::cout << "number: " << number << std::endl;
     });
     */
 
-    argp.add_newline();
-    argp.add_text("Copyright, author email and all that stuff");
+    argp.newline();
+    argp.text("Copyright, author email and all that stuff");
 
     std::cout << "----------------------------------------------" << std::endl;
     argp.parse_args(argc, argv);

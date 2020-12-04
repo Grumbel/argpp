@@ -22,38 +22,38 @@ private:
 void run_test(std::span<char const* const> argv, Mock& mock)
 {
   ArgParser argp;
-  argp.add_option('h', "help", "Display help").then([&]{ mock.call("help"); });
-  argp.add_positional(Argument<std::string>("POS1")).then([&](std::string const& /* unused */){ mock.call("pos1"); });
-  argp.add_positional(Argument<std::string>("POS2")).then([&](std::string const& /* unused */){ mock.call("pos2"); });
-  argp.add_rest(Argument<std::string>("REST")).then([&](std::string const& /* unused */){ mock.call("rest"); });
+  argp.option('h', "help", "Display help").then([&]{ mock.call("help"); });
+  argp.positional(Argument<std::string>("POS1")).then([&](std::string const& /* unused */){ mock.call("pos1"); });
+  argp.positional(Argument<std::string>("POS2")).then([&](std::string const& /* unused */){ mock.call("pos2"); });
+  argp.rest(Argument<std::string>("REST")).then([&](std::string const& /* unused */){ mock.call("rest"); });
 
   argp.parse_args(argv);
 }
 
 } // namespace
 
-TEST(ArgParserTest, add_option__short)
+TEST(ArgParserTest, option__short)
 {
   Mock mock;
   run_test({{"example", "-h"}}, mock);
   EXPECT_EQ(mock.times_called("help"), 1);
 }
 
-TEST(ArgParserTest, add_option__long)
+TEST(ArgParserTest, option__long)
 {
   Mock mock;
   run_test({{"example", "--help"}}, mock);
   EXPECT_EQ(mock.times_called("help"), 1);
 }
 
-TEST(ArgParserTest, add_rest)
+TEST(ArgParserTest, rest)
 {
   Mock mock;
   run_test({{"example", "pos1", "pos2", "rest1", "rest2", "rest3"}}, mock);
   EXPECT_EQ(mock.times_called("rest"), 3);
 }
 
-TEST(ArgParserTest, add_positional)
+TEST(ArgParserTest, positional)
 {
   Mock mock;
   run_test({{"example", "pos1", "pos2"}}, mock);

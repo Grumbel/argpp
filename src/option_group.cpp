@@ -38,7 +38,7 @@ OptionGroup::OptionGroup() :
 }
 
 void
-OptionGroup::add_usage(std::string usage)
+OptionGroup::usage(std::string usage)
 {
   if (!m_usage) {
     m_usage = std::vector<std::string>();
@@ -47,26 +47,26 @@ OptionGroup::add_usage(std::string usage)
 }
 
 void
-OptionGroup::add_group(std::string name, Flags const& flags)
+OptionGroup::group(std::string name, Flags const& flags)
 {
-  add_newline(flags);
+  newline(flags);
   m_items.push_back(std::make_unique<TextItem>(std::move(name), flags));
 }
 
 void
-OptionGroup::add_text(std::string text, Flags const& flags)
+OptionGroup::text(std::string text, Flags const& flags)
 {
   m_items.push_back(std::make_unique<TextItem>(std::move(text), flags));
 }
 
 void
-OptionGroup::add_newline(Flags const& flags)
+OptionGroup::newline(Flags const& flags)
 {
   m_items.push_back(std::make_unique<TextItem>("", flags));
 }
 
 void
-OptionGroup::add_pseudo(std::string name, std::string help, Flags const& flags)
+OptionGroup::pseudo(std::string name, std::string help, Flags const& flags)
 {
   m_items.push_back(std::make_unique<PseudoItem>(std::move(name), std::move(help), flags));
 }
@@ -88,7 +88,7 @@ OptionGroup::add_option(std::unique_ptr<Option> option)
 }
 
 CommandItem&
-OptionGroup::add_command(std::string name, std::string help, Flags const& flags)
+OptionGroup::command(std::string name, std::string help, Flags const& flags)
 {
   if (has_positional() || has_rest() || has_rest_options()) {
     throw Error("can't mix positional arguments with commands");
@@ -101,13 +101,13 @@ OptionGroup::add_command(std::string name, std::string help, Flags const& flags)
 }
 
 void
-OptionGroup::add_alias(char name, Option const& option)
+OptionGroup::alias(char name, Option const& option)
 {
   add_short_option(name, option);
 }
 
 void
-OptionGroup::add_alias(std::string name, Option const& option)
+OptionGroup::alias(std::string name, Option const& option)
 {
   add_long_option(std::move(name), option);
 }

@@ -30,40 +30,40 @@ int main(int argc, char** argv)
     using argparser::Flags;
     argparser::ArgParser argp;
 
-    argp.add_program(argv[0]);
-    argp.add_usage("Custom Usage String");
-    argp.add_usage("Custom Usage String 2");
-    argp.add_usage("Custom Usage String 3");
-    argp.add_text("Short description of what it does");
-    argp.add_newline();
-    argp.add_text("Lengthy description of what the program does. "
+    argp.program(argv[0]);
+    argp.usage("Custom Usage String");
+    argp.usage("Custom Usage String 2");
+    argp.usage("Custom Usage String 3");
+    argp.text("Short description of what it does");
+    argp.newline();
+    argp.text("Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. ");
 
-    argp.add_group("Options:");
-    argp.add_option('v', "version", "Version", Flags().mutual_exclusion(1u));
-    argp.add_option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
-    argp.add_option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argp.print_help(std::cout, 1u); });
-    argp.add_option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
-    argp.add_alias("hilfe", argp.lookup_long_option("help"));
-    argp.add_option({}, "long-only", Argument("ARG"), "Blabla");
+    argp.group("Options:");
+    argp.option('v', "version", "Version", Flags().mutual_exclusion(1u));
+    argp.option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
+    argp.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argp.print_help(std::cout, 1u); });
+    argp.option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
+    argp.alias("hilfe", argp.lookup_long_option("help"));
+    argp.option({}, "long-only", Argument("ARG"), "Blabla");
 
-    argp.add_group("Rest Arguments:");
-    auto& rest_item = argp.add_rest_options(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
+    argp.group("Rest Arguments:");
+    auto& rest_item = argp.rest_options(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
     rest_item.then([](std::filesystem::path const& path){
       std::cout << "Path: " << path << std::endl;
     });
     auto& rest_opts = rest_item.get_options();
-    rest_opts.add_group("Rest Argument Options:");
-    rest_opts.add_option('h', "help", "Help text...").then([]{
+    rest_opts.group("Rest Argument Options:");
+    rest_opts.option('h', "help", "Help text...").then([]{
       std::cout << "  help" << std::endl;
     });
 
-    argp.add_newline();
-    argp.add_text("Copyright, author email and all that stuff");
+    argp.newline();
+    argp.text("Copyright, author email and all that stuff");
 
     std::cout << "----------------------------------------------" << std::endl;
     argp.parse_args(argc, argv);

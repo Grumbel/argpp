@@ -36,7 +36,7 @@ class Parser : public OptionGroup
 public:
   Parser();
 
-  void add_program(std::string program);
+  void program(std::string program);
 
   void print_usage(std::ostream& out = std::cout) const;
   void print_help(std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;

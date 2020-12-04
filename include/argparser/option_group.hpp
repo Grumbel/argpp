@@ -39,21 +39,21 @@ public:
   OptionGroup();
   ~OptionGroup() = default;
 
-  void add_usage(std::string usage);
+  void usage(std::string usage);
 
-  void add_text(std::string text, Flags const& flags = {});
-  void add_newline(Flags const& flags = {});
-  void add_group(std::string name, Flags const& flags = {});
+  void text(std::string text, Flags const& flags = {});
+  void newline(Flags const& flags = {});
+  void group(std::string name, Flags const& flags = {});
 
-  void add_pseudo(std::string name, std::string help, Flags const& flags = {});
+  void pseudo(std::string name, std::string help, Flags const& flags = {});
 
-  void add_alias(char name, Option const& option);
-  void add_alias(std::string name, Option const& option);
+  void alias(char name, Option const& option);
+  void alias(std::string name, Option const& option);
 
-  CommandItem& add_command(std::string name, std::string help, Flags const& flags = {});
+  CommandItem& command(std::string name, std::string help, Flags const& flags = {});
 
   template<typename T>
-  TPositionalItem<T>& add_positional(Argument<T> argument, std::string help = {}, Flags const& flags = {})
+  TPositionalItem<T>& positional(Argument<T> argument, std::string help = {}, Flags const& flags = {})
   {
     auto positional_item = std::make_unique<TPositionalItem<T>>(std::move(argument), std::move(help), flags);
     auto& positional_item_ref = *positional_item;
@@ -63,7 +63,7 @@ public:
   }
 
   template<typename T>
-  TRestItem<T>& add_rest(Argument<T> argument, std::string help = {}, Flags const& flags = {})
+  TRestItem<T>& rest(Argument<T> argument, std::string help = {}, Flags const& flags = {})
   {
     if (has_rest() || has_rest_options()) {
       throw Error("only one rest argument allowed");
@@ -77,7 +77,7 @@ public:
   }
 
   template<typename T>
-  TRestOptionsItem<T>& add_rest_options(Argument<T> argument, std::string help = {}, Flags const& flags = {})
+  TRestOptionsItem<T>& rest_options(Argument<T> argument, std::string help = {}, Flags const& flags = {})
   {
     if (has_rest() || has_rest_options()) {
       throw Error("only one rest argument allowed");
@@ -90,7 +90,7 @@ public:
     return rest_item_ref;
   }
 
-  OptionWithoutArg& add_option(std::optional<char> short_name,
+  OptionWithoutArg& option(std::optional<char> short_name,
                                std::optional<std::string> long_name,
                                std::string help,
                                Flags const& flags = {})
@@ -100,7 +100,7 @@ public:
   }
 
   template<typename T>
-  TOptionWithArg<T>& add_option(std::optional<char> short_name,
+  TOptionWithArg<T>& option(std::optional<char> short_name,
                                 std::optional<std::string> long_name,
                                 Argument<T> argument,
                                 std::string help,
