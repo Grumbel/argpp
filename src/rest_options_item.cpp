@@ -14,22 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ARGPARSER_HPP
-#define HEADER_ARGPARSER_ARGPARSER_HPP
-
-#include "argument.hpp"
-#include "command_item.hpp"
-#include "flags.hpp"
-#include "option_group.hpp"
-#include "parser.hpp"
 #include "rest_options_item.hpp"
+
+#include "prettyprinter.hpp"
 
 namespace argparser {
 
-using ArgParser = Parser;
+void
+RestOptionsItem::print(PrettyPrinter& pprinter)
+{
+  pprinter.print("  " + get_name(), get_help());
+}
 
 } // namespace argparser
-
-#endif
 
 /* EOF */

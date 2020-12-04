@@ -31,7 +31,8 @@ OptionGroup::OptionGroup() :
   m_short_options(),
   m_long_options(),
   m_positionals(),
-  m_rest(nullptr)
+  m_rest(nullptr),
+  m_rest_options(nullptr)
 {
 }
 
@@ -79,12 +80,8 @@ OptionGroup::add_option(std::unique_ptr<Option> option)
 CommandItem&
 OptionGroup::add_command(std::string name, std::string help, Flags const& flags)
 {
-  for (auto const& item : m_items) {
-    if (dynamic_cast<PositionalItem*>(item.get()) != nullptr ||
-        dynamic_cast<RestItem*>(item.get()) != nullptr)
-    {
-      throw Error("can't mix positional arguments with commands");
-    }
+  if (has_positional() || has_rest() || has_rest_options()) {
+    throw Error("can't mix positional arguments with commands");
   }
 
   auto command_item = std::make_unique<CommandItem>(std::move(name), std::move(help), flags);
@@ -162,6 +159,13 @@ OptionGroup::lookup_rest() const
   return *m_rest;
 }
 
+RestOptionsItem const&
+OptionGroup::lookup_rest_options() const
+{
+  assert(m_rest_options);
+  return *m_rest_options;
+}
+
 Option const&
 OptionGroup::lookup_short_option(char name) const
 {
@@ -215,6 +219,12 @@ bool
 OptionGroup::has_rest() const
 {
   return m_rest != nullptr;
+}
+
+bool
+OptionGroup::has_rest_options() const
+{
+  return m_rest_options != nullptr;
 }
 
 } // namespace argparser

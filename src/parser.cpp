@@ -29,6 +29,7 @@
 #include "parser.hpp"
 #include "positional_item.hpp"
 #include "prettyprinter.hpp"
+#include "rest_options_item.hpp"
 #include "text_item.hpp"
 
 namespace argparser {
@@ -75,6 +76,11 @@ public:
     } else {
       return false;
     }
+  }
+
+  void rollback() {
+    assert(m_idx > 0);
+    m_idx -= 1;
   }
 
   std::string_view program() const { return m_argv[0]; }
@@ -124,7 +130,7 @@ Parser::parse_args(std::span<char const* const> argv)
 }
 
 void
-Parser::parse_args(ParseContext& ctx, OptionGroup const& group)
+Parser::parse_args(ParseContext& ctx, OptionGroup const& group, bool options_only)
 {
   while (ctx.next())
   {
@@ -132,11 +138,14 @@ Parser::parse_args(ParseContext& ctx, OptionGroup const& group)
 
     if (arg.empty() || arg[0] != '-') // rest
     {
+      if (options_only) { ctx.rollback(); return; }
       parse_non_option(ctx, group, arg);
     }
     else if (arg[1] == '-') // --...
     {
       if (arg.size() == 2) { // --
+        if (options_only) { ctx.rollback(); return; }
+
         // Got a '--' treat everything after this as rest
         while (ctx.next()) {
           parse_non_option(ctx, group, arg);
@@ -149,6 +158,7 @@ Parser::parse_args(ParseContext& ctx, OptionGroup const& group)
     else // short option
     {
       if (arg.size() == 1) { // -
+        if (options_only) { ctx.rollback(); return; }
         parse_non_option(ctx, group, arg);
       } else {
         parse_short_option(ctx, group, arg);
@@ -202,6 +212,17 @@ Parser::parse_non_option(ParseContext& ctx, OptionGroup const& group, std::strin
       } catch (...) {
         std::throw_with_nested(Error(fmt::format("invalid rest item at {}: {}", ctx.get_positional_index(), arg)));
       }
+    } else if (group.has_rest_options()) {
+      RestOptionsItem const& item = group.lookup_rest_options();
+      verify(ctx, arg, item);
+      try {
+        item.call(arg);
+      } catch (std::exception const& err) {
+        throw Error(fmt::format("invalid rest item at {}: {}: {}", ctx.get_positional_index(), arg, err.what()));
+      } catch (...) {
+        std::throw_with_nested(Error(fmt::format("invalid rest item at {}: {}", ctx.get_positional_index(), arg)));
+      }
+      parse_args(ctx, item.get_options(), true);
     } else {
       throw Error(fmt::format("unknown item in position {}: {}", ctx.get_positional_index(), arg));
     }
@@ -297,6 +318,16 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
         } else {
           out << " [" << rest_item->get_name() << "]...";
         }
+      } else if (auto* rest_options_item = dynamic_cast<RestOptionsItem*>(item.get())) {
+        out << " (";
+
+        out << " " << rest_options_item->get_name();
+
+        if (rest_options_item->get_options().has_options()) {
+          out << " [OPTION]...";
+        }
+
+        out << " )...";
       }
     }
   };
@@ -343,11 +374,11 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
 void
 Parser::print_help(CommandItem const& command_item, std::ostream& out, uint32_t visibility_mask) const
 {
-  print_help(command_item.get_options(), &command_item, out, visibility_mask);
+  print_help(command_item.get_options(), &command_item, out, visibility_mask, false);
 }
 
 void
-Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask) const
+Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask, bool skip_print_usage) const
 {
   // FIXME: move this into PrettyPrinter
   const int terminal_width = std::min(get_terminal_width(), 120);
@@ -391,11 +422,16 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
   PrettyPrinter pprinter(terminal_width); // -1 so we have a whitespace on the right side
 
   pprinter.set_column_width(column_width);
-  print_usage(current_command_item, out);
+  if (!skip_print_usage) {
+    print_usage(current_command_item, out);
+  }
 
   for (auto const& item : group.get_items()) {
     if (item->get_flags().get_visibility() & visibility_mask) {
       item->print(pprinter);
+      if (auto const* rest_options_item = dynamic_cast<RestOptionsItem const*>(item.get())) {
+        print_help(rest_options_item->get_options(), nullptr, out, visibility_mask, true);
+      }
     }
   }
 }
@@ -403,7 +439,7 @@ Parser::print_help(OptionGroup const& group, CommandItem const* current_command_
 void
 Parser::print_help(std::ostream& out, uint32_t visibility_mask) const
 {
-  print_help(*this, nullptr, out, visibility_mask);
+  print_help(*this, nullptr, out, visibility_mask, false);
 }
 
 void

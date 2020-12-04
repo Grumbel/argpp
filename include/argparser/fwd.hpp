@@ -26,6 +26,8 @@ class Option;
 class CommandItem;
 class OptionGroup;
 class PrettyPrinter;
+class RestOptionsItem;
+template<typename T> class TRestOptionsItem;
 
 } // namespace argparser
 

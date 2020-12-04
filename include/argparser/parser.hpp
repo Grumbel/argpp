@@ -46,10 +46,10 @@ public:
   void parse_args(std::span<char const* const> argv);
 
 private:
-  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask) const;
+  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask, bool skip_print_usage) const;
   void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
 
-  void parse_args(ParseContext& ctx, OptionGroup const& group);
+  void parse_args(ParseContext& ctx, OptionGroup const& group, bool options_only = false);
   void parse_long_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
   void parse_short_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
   void parse_non_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);

@@ -63,7 +63,7 @@ public:
   template<typename T>
   TRestItem<T>& add_rest(Argument<T> argument, std::string help = {}, Flags const& flags = {})
   {
-    if (has_rest()) {
+    if (has_rest() || has_rest_options()) {
       throw Error("only one rest argument allowed");
     }
 
@@ -71,6 +71,20 @@ public:
     auto& rest_item_ref = *rest_item;
     m_items.emplace_back(std::move(rest_item));
     m_rest = &rest_item_ref;
+    return rest_item_ref;
+  }
+
+  template<typename T>
+  TRestOptionsItem<T>& add_rest_options(Argument<T> argument, std::string help = {}, Flags const& flags = {})
+  {
+    if (has_rest() || has_rest_options()) {
+      throw Error("only one rest argument allowed");
+    }
+
+    auto rest_item = std::make_unique<TRestOptionsItem<T>>(std::move(argument), std::move(help), flags);
+    auto& rest_item_ref = *rest_item;
+    m_items.emplace_back(std::move(rest_item));
+    m_rest_options = &rest_item_ref;
     return rest_item_ref;
   }
 
@@ -99,11 +113,13 @@ public:
   Option const& lookup_long_option(std::string_view name) const;
   PositionalItem const& lookup_positional(int i) const;
   RestItem const& lookup_rest() const;
+  RestOptionsItem const& lookup_rest_options() const;
 
   bool has_options() const;
   bool has_commands() const;
   bool has_positional() const;
   bool has_rest() const;
+  bool has_rest_options() const;
 
   int get_positional_count() const;
 
@@ -120,6 +136,7 @@ private:
   std::unordered_map<std::string, Option const*> m_long_options;
   std::vector<PositionalItem const*> m_positionals;
   RestItem const* m_rest;
+  RestOptionsItem const* m_rest_options;
 
 public:
   OptionGroup(const OptionGroup&) = delete;
