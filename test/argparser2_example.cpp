@@ -31,7 +31,9 @@ int main(int argc, char** argv)
     argparser::ArgParser argp;
 
     argp.add_program(argv[0]);
-
+    argp.add_usage("Custom Usage String");
+    argp.add_usage("Custom Usage String 2");
+    argp.add_usage("Custom Usage String 3");
     argp.add_text("Short description of what it does");
     argp.add_newline();
     argp.add_text("Lengthy description of what the program does. "

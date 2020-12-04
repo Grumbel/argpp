@@ -111,9 +111,9 @@ Parser::Parser() :
 }
 
 void
-Parser::add_program(std::string_view program)
+Parser::add_program(std::string program)
 {
-  m_program = program;
+  m_program = std::move(program);
 }
 
 void
@@ -332,7 +332,18 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
     }
   };
 
-  if (!has_commands())
+  if (get_usage()) {
+    int i = 0;
+    for (std::string const& usage : *get_usage()) {
+      if (i == 0) {
+        out << "Usage: " << m_program << ' ' << usage;
+      } else {
+        out << "\n       " << m_program << ' ' << usage;
+      }
+      i += 1;
+    }
+  }
+  else if (!has_commands())
   {
     out << "Usage: " << m_program;
     print_group(*this);

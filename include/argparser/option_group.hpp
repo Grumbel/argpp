@@ -39,6 +39,8 @@ public:
   OptionGroup();
   ~OptionGroup() = default;
 
+  void add_usage(std::string usage);
+
   void add_text(std::string text, Flags const& flags = {});
   void add_newline(Flags const& flags = {});
   void add_group(std::string name, Flags const& flags = {});
@@ -115,6 +117,8 @@ public:
   RestItem const& lookup_rest() const;
   RestOptionsItem const& lookup_rest_options() const;
 
+  std::optional<std::vector<std::string>> const& get_usage() const { return m_usage; }
+
   bool has_options() const;
   bool has_commands() const;
   bool has_positional() const;
@@ -131,6 +135,7 @@ private:
   void add_long_option(std::string name, Option const& option);
 
 private:
+  std::optional<std::vector<std::string>> m_usage;
   std::vector<std::unique_ptr<Item> > m_items;
   std::unordered_map<char, Option const*> m_short_options;
   std::unordered_map<std::string, Option const*> m_long_options;

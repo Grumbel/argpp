@@ -27,6 +27,7 @@
 namespace argparser {
 
 OptionGroup::OptionGroup() :
+  m_usage(),
   m_items(),
   m_short_options(),
   m_long_options(),
@@ -34,6 +35,15 @@ OptionGroup::OptionGroup() :
   m_rest(nullptr),
   m_rest_options(nullptr)
 {
+}
+
+void
+OptionGroup::add_usage(std::string usage)
+{
+  if (!m_usage) {
+    m_usage = std::vector<std::string>();
+  }
+  m_usage->emplace_back(std::move(usage));
 }
 
 void
