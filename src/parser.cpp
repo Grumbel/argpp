@@ -82,7 +82,8 @@ private:
   std::map<Item const*, std::string_view> m_parsed_arguments;
 };
 
-Parser::Parser()
+Parser::Parser(OptionGroup const& options) :
+  m_options(options)
 {
 }
 
@@ -96,7 +97,7 @@ void
 Parser::parse_args(std::span<char const* const> argv)
 {
   ParseContext ctx(argv);
-  parse_args(ctx, *this);
+  parse_args(ctx, m_options);
 }
 
 void

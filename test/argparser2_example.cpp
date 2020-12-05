@@ -28,31 +28,31 @@ int main(int argc, char** argv)
 
     using argparser::Argument;
     using argparser::Flags;
-    argparser::ArgParser argp;
+    argparser::OptionGroup opts;
 
-    argp.program(argv[0]);
-    argp.usage("Custom Usage String");
-    argp.usage("Custom Usage String 2");
-    argp.usage("Custom Usage String 3");
-    argp.text("Short description of what it does");
-    argp.newline();
-    argp.text("Lengthy description of what the program does. "
+    opts.program(argv[0]);
+    opts.usage("Custom Usage String");
+    opts.usage("Custom Usage String 2");
+    opts.usage("Custom Usage String 3");
+    opts.text("Short description of what it does");
+    opts.newline();
+    opts.text("Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. "
                   "Lengthy description of what the program does. ");
 
-    argp.group("Options:");
-    argp.option('v', "version", "Version", Flags().mutual_exclusion(1u));
-    argp.option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
-    argp.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argparser::Printer(argp).print_help(std::cout, 1u); });
-    argp.option('H', "help-extra", "Help text").then([&]{ argparser::Printer(argp).print_help(std::cout, ~0u); });
-    argp.alias("hilfe", argp.lookup_long_option("help"));
-    argp.option({}, "long-only", Argument("ARG"), "Blabla");
+    opts.group("Options:");
+    opts.option('v', "version", "Version", Flags().mutual_exclusion(1u));
+    opts.option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
+    opts.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argparser::Printer(opts).print_help(std::cout, 1u); });
+    opts.option('H', "help-extra", "Help text").then([&]{ argparser::Printer(opts).print_help(std::cout, ~0u); });
+    opts.alias("hilfe", opts.lookup_long_option("help"));
+    opts.option({}, "long-only", Argument("ARG"), "Blabla");
 
-    argp.group("Rest Arguments:");
-    auto& rest_item = argp.rest_options(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
+    opts.group("Rest Arguments:");
+    auto& rest_item = opts.rest_options(Argument<std::filesystem::path>("FILE"), "Files to do stuff with");
     rest_item.then([](std::filesystem::path const& path){
       std::cout << "Path: " << path << std::endl;
     });
@@ -62,11 +62,11 @@ int main(int argc, char** argv)
       std::cout << "  help" << std::endl;
     });
 
-    argp.newline();
-    argp.text("Copyright, author email and all that stuff");
+    opts.newline();
+    opts.text("Copyright, author email and all that stuff");
 
     std::cout << "----------------------------------------------" << std::endl;
-    argp.parse_args(argc, argv);
+    argparser::Parser(opts).parse_args(argc, argv);
 
     std::cout << "Verbose: " << verbose << std::endl;
 

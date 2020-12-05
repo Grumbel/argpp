@@ -31,10 +31,10 @@ namespace argparser {
 
 class ParseContext;
 
-class Parser : public OptionGroup
+class Parser
 {
 public:
-  Parser();
+  Parser(OptionGroup const& options);
 
   void parse_args(int argc, char const* const* argv);
   void parse_args(std::span<char const* const> argv);
@@ -47,6 +47,9 @@ private:
 
   void verify(ParseContext& ctx, std::string_view arg, Item const& item);
   void check_mutual_exclusion(ParseContext& ctx, std::string_view arg, Item const& item);
+
+private:
+  OptionGroup const& m_options;
 };
 
 } // namespace argparser
