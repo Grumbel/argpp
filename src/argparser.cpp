@@ -16,6 +16,8 @@
 
 #include "argparser.hpp"
 
+#include "printer.hpp"
+
 namespace argparser {
 
 void parse(OptionGroup const& options, int argc, char const* const* argv)
@@ -27,6 +29,18 @@ void parse(OptionGroup const& options, std::span<char const* const> argv)
 {
   Parser parser(options);
   parser.parse_args(argv);
+}
+
+void print_help(OptionGroup const& options, std::ostream& out, uint32_t visibility_mask)
+{
+  Printer printer(options);
+  printer.print_help(out, visibility_mask);
+}
+
+void print_help(OptionGroup const& options, CommandItem const& command_item, std::ostream& out, uint32_t visibility_mask)
+{
+  Printer printer(options);
+  printer.print_help(command_item, out, visibility_mask);
 }
 
 } // namespace argparser

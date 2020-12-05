@@ -47,8 +47,8 @@ int main(int argc, char** argv)
     opts.group("Options:");
     opts.option('v', "version", "Version", Flags().mutual_exclusion(1u));
     opts.option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
-    opts.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argparser::Printer(opts).print_help(std::cout, 1u); });
-    opts.option('H', "help-extra", "Help text").then([&]{ argparser::Printer(opts).print_help(std::cout, ~0u); });
+    opts.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argparser::print_help(opts, std::cout, 1u); });
+    opts.option('H', "help-extra", "Help text").then([&]{ argparser::print_help(opts, std::cout, ~0u); });
     opts.alias("hilfe", opts.lookup_long_option("help"));
     opts.option({}, "long-only", Argument("ARG"), "Blabla");
 
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
     install_opts.text("Install stuff");
 
     install_opts.group("Options:");
-    install_opts.option('h', "help", "Help text").then([&]{ argparser::Printer(opts).print_help(install_cmd); });
+    install_opts.option('h', "help", "Help text").then([&]{ argparser::print_help(opts, install_cmd); });
     install_opts.option('n', "number", "Blabla");
     install_opts.option('d', "device", "Blabla");
 
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 
     auto& search_cmd = opts.command("search", "Search stuff");
     auto& search_opts = search_cmd.get_options();
-    search_opts.option('h', "help", "Help text").then([&]{ argparser::Printer(opts).print_help(search_cmd); });
+    search_opts.option('h', "help", "Help text").then([&]{ argparser::print_help(opts, search_cmd); });
     search_opts.option('n', "number", "Blabla");
     search_opts.option('d', "device", "Blabla");
 

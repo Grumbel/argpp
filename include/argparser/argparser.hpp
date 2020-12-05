@@ -34,6 +34,9 @@ using ArgParser = Parser;
 void parse(OptionGroup const& options, int argc, char const* const* argv);
 void parse(OptionGroup const& options, std::span<char const* const> argv);
 
+void print_help(OptionGroup const& options, std::ostream& out = std::cout, uint32_t visibility_mask = ~0);
+void print_help(OptionGroup const& options, CommandItem const& command_item, std::ostream& out = std::cout, uint32_t visibility_mask = ~0);
+
 } // namespace argparser
 
 #endif
