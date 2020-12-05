@@ -105,15 +105,8 @@ private:
   std::map<Item const*, std::string_view> m_parsed_arguments;
 };
 
-Parser::Parser() :
-  m_program()
+Parser::Parser()
 {
-}
-
-void
-Parser::program(std::string program_name)
-{
-  m_program = std::move(program_name);
 }
 
 void
@@ -336,16 +329,16 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
     int i = 0;
     for (std::string const& usage : *get_usage()) {
       if (i == 0) {
-        out << "Usage: " << m_program << ' ' << usage;
+        out << "Usage: " << get_program() << ' ' << usage;
       } else {
-        out << "\n       " << m_program << ' ' << usage;
+        out << "\n       " << get_program() << ' ' << usage;
       }
       i += 1;
     }
   }
   else if (!has_commands())
   {
-    out << "Usage: " << m_program;
+    out << "Usage: " << get_program();
     print_group(*this);
   }
   else
@@ -364,7 +357,7 @@ Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) 
           out << "\n       ";
         }
 
-        out << m_program;
+        out << get_program();
 
         if (has_options()) {
           out << " [OPTION]...";

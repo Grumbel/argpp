@@ -36,8 +36,6 @@ class Parser : public OptionGroup
 public:
   Parser();
 
-  void program(std::string program);
-
   void print_usage(std::ostream& out = std::cout) const;
   void print_help(std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
   void print_help(CommandItem const& command_item, std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
@@ -56,9 +54,6 @@ private:
 
   void verify(ParseContext& ctx, std::string_view arg, Item const& item);
   void check_mutual_exclusion(ParseContext& ctx, std::string_view arg, Item const& item);
-
-private:
-  std::string m_program;
 };
 
 } // namespace argparser

@@ -27,6 +27,7 @@
 namespace argparser {
 
 OptionGroup::OptionGroup() :
+  m_program(),
   m_usage(),
   m_items(),
   m_short_options(),
@@ -35,6 +36,12 @@ OptionGroup::OptionGroup() :
   m_rest(nullptr),
   m_rest_options(nullptr)
 {
+}
+
+void
+OptionGroup::program(std::string program_name)
+{
+  m_program = std::move(program_name);
 }
 
 void

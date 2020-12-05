@@ -19,6 +19,7 @@ Checks: >
   -readability-redundant-access-specifiers,
   -modernize-use-default-member-init,
   -readability-uppercase-literal-suffix,
+  -modernize-use-equals-default,
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*hpp'
 AnalyzeTemporaryDtors: true
