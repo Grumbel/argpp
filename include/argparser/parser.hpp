@@ -36,7 +36,6 @@ class Parser
 public:
   Parser(OptionGroup const& options);
 
-  void parse_args(int argc, char const* const* argv);
   void parse_args(std::span<char const* const> argv);
 
 private:

@@ -136,7 +136,7 @@ int main(int argc, char** argv)
     opts.text("Copyright, author email and all that stuff");
 
     std::cout << "----------------------------------------------" << std::endl;
-    argparser::Parser(opts).parse_args(argc, argv);
+    argparser::parse(opts, argc, argv);
 
     std::cout << "Store: " << var << std::endl;
     std::cout << "Verbose: " << verbose << std::endl;

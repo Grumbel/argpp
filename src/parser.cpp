@@ -88,12 +88,6 @@ Parser::Parser(OptionGroup const& options) :
 }
 
 void
-Parser::parse_args(int argc, char const* const* argv)
-{
-  parse_args(std::span<char const* const>(argv, argc));
-}
-
-void
 Parser::parse_args(std::span<char const* const> argv)
 {
   ParseContext ctx(argv);

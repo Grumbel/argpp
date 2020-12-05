@@ -14,28 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ARGPARSER_HPP
-#define HEADER_ARGPARSER_ARGPARSER_HPP
-
-#include <span>
-
-#include "argument.hpp"
-#include "command_item.hpp"
-#include "flags.hpp"
-#include "option_group.hpp"
-#include "parser.hpp"
-#include "printer.hpp"
-#include "rest_options_item.hpp"
+#include "argparser.hpp"
 
 namespace argparser {
 
-using ArgParser = Parser;
+void parse(OptionGroup const& options, int argc, char const* const* argv)
+{
+  parse(options, std::span<char const* const>(argv, argc));
+}
 
-void parse(OptionGroup const& options, int argc, char const* const* argv);
-void parse(OptionGroup const& options, std::span<char const* const> argv);
+void parse(OptionGroup const& options, std::span<char const* const> argv)
+{
+  Parser parser(options);
+  parser.parse_args(argv);
+}
 
 } // namespace argparser
-
-#endif
 
 /* EOF */
