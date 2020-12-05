@@ -46,8 +46,8 @@ int main(int argc, char** argv)
     argp.group("Options:");
     argp.option('v', "version", "Version", Flags().mutual_exclusion(1u));
     argp.option('V', "verbose", "Version", Flags().mutual_exclusion(1u)).increment(verbose);
-    argp.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argp.print_help(std::cout, 1u); });
-    argp.option('H', "help-extra", "Help text").then([&]{ argp.print_help(std::cout, ~0u); });
+    argp.option('h', "help", "Help text", Flags().mutual_exclusion(1u)).then([&]{ argparser::Printer(argp).print_help(std::cout, 1u); });
+    argp.option('H', "help-extra", "Help text").then([&]{ argparser::Printer(argp).print_help(std::cout, ~0u); });
     argp.alias("hilfe", argp.lookup_long_option("help"));
     argp.option({}, "long-only", Argument("ARG"), "Blabla");
 

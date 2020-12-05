@@ -14,20 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ARGPARSER_HPP
-#define HEADER_ARGPARSER_ARGPARSER_HPP
+#ifndef HEADER_ARGPARSER_PRINTER_HPP
+#define HEADER_ARGPARSER_PRINTER_HPP
 
-#include "argument.hpp"
-#include "command_item.hpp"
-#include "flags.hpp"
-#include "option_group.hpp"
-#include "parser.hpp"
-#include "printer.hpp"
-#include "rest_options_item.hpp"
+#include <iostream>
+#include <stdint.h>
+
+#include "fwd.hpp"
 
 namespace argparser {
 
-using ArgParser = Parser;
+class Printer
+{
+public:
+  Printer(OptionGroup const& options);
+
+  void print_usage(std::ostream& out = std::cout) const;
+  void print_help(std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
+  void print_help(CommandItem const& command_item, std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
+
+private:
+  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask, bool skip_print_usage) const;
+  void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
+
+private:
+  OptionGroup const& m_options;
+};
 
 } // namespace argparser
 

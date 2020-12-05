@@ -36,17 +36,10 @@ class Parser : public OptionGroup
 public:
   Parser();
 
-  void print_usage(std::ostream& out = std::cout) const;
-  void print_help(std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
-  void print_help(CommandItem const& command_item, std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
-
   void parse_args(int argc, char const* const* argv);
   void parse_args(std::span<char const* const> argv);
 
 private:
-  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask, bool skip_print_usage) const;
-  void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
-
   void parse_args(ParseContext& ctx, OptionGroup const& group, bool options_only = false);
   void parse_long_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);
   void parse_short_option(ParseContext& ctx, OptionGroup const& group, std::string_view arg);

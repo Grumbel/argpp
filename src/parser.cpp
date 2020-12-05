@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <sys/ioctl.h>
-
 #include <fmt/format.h>
 
 #include <map>
@@ -28,31 +26,10 @@
 #include "option_group.hpp"
 #include "parser.hpp"
 #include "positional_item.hpp"
-#include "prettyprinter.hpp"
 #include "rest_options_item.hpp"
 #include "text_item.hpp"
 
 namespace argparser {
-
-namespace {
-
-constexpr int max_column_width = 5;
-constexpr int default_terminal_width = 80;
-
-int get_terminal_width()
-{
-  struct winsize w;
-  if (ioctl(0, TIOCGWINSZ, &w) < 0)
-  {
-    return default_terminal_width;
-  }
-  else
-  {
-    return w.ws_col;
-  }
-}
-
-} // namespace
 
 class ParseContext
 {
@@ -278,172 +255,6 @@ Parser::parse_short_option(ParseContext& ctx, OptionGroup const& group, std::str
       }
     }
   }
-}
-
-void
-Parser::print_usage(std::ostream& out) const
-{
-  print_usage(nullptr, out);
-}
-
-void
-Parser::print_usage(CommandItem const* current_command_item, std::ostream& out) const
-{
-  auto print_group = [&](OptionGroup const& group) {
-    if (group.has_options()) {
-      out << " [OPTION]...";
-    }
-
-    for (auto const& item : group.get_items()) {
-      if (auto* positional_item = dynamic_cast<PositionalItem*>(item.get())) {
-        if (positional_item->get_flags().is_required()) {
-          out << " " << positional_item->get_name();
-        } else {
-          out << " [" << positional_item->get_name() << "]";
-        }
-      }
-    }
-
-    for (auto const& item : group.get_items()) {
-      if (auto* rest_item = dynamic_cast<RestItem*>(item.get())) {
-        if (rest_item->get_flags().is_required()) {
-          out << " " << rest_item->get_name() << "...";
-        } else {
-          out << " [" << rest_item->get_name() << "]...";
-        }
-      } else if (auto* rest_options_item = dynamic_cast<RestOptionsItem*>(item.get())) {
-        out << " (";
-
-        out << " " << rest_options_item->get_name();
-
-        if (rest_options_item->get_options().has_options()) {
-          out << " [OPTION]...";
-        }
-
-        out << " )...";
-      }
-    }
-  };
-
-  if (get_usage()) {
-    int i = 0;
-    for (std::string const& usage : *get_usage()) {
-      if (i == 0) {
-        out << "Usage: " << get_program() << ' ' << usage;
-      } else {
-        out << "\n       " << get_program() << ' ' << usage;
-      }
-      i += 1;
-    }
-  }
-  else if (!has_commands())
-  {
-    out << "Usage: " << get_program();
-    print_group(*this);
-  }
-  else
-  {
-    size_t item_idx = 0;
-    for (auto const& item : get_items()) {
-      if (auto* command_item = dynamic_cast<CommandItem*>(item.get())) {
-        if (current_command_item != nullptr &&
-            current_command_item != command_item) {
-          continue;
-        }
-
-        if (item_idx == 0) {
-          out << "Usage: ";
-        } else {
-          out << "\n       ";
-        }
-
-        out << get_program();
-
-        if (has_options()) {
-          out << " [OPTION]...";
-        }
-
-        out << " " << command_item->get_name();
-
-        print_group(command_item->get_options());
-
-        item_idx += 1;
-      }
-    }
-  }
-
-  out << std::endl;
-}
-
-void
-Parser::print_help(CommandItem const& command_item, std::ostream& out, uint32_t visibility_mask) const
-{
-  print_help(command_item.get_options(), &command_item, out, visibility_mask, false);
-}
-
-void
-Parser::print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask, bool skip_print_usage) const
-{
-  // FIXME: move this into PrettyPrinter
-  const int terminal_width = std::min(get_terminal_width(), 120);
-  const int column_min_width = 8;
-  int column_width = column_min_width;
-
-  { // Calculate left column width
-    for (auto const& item : group.get_items())
-    {
-      if (auto* opt = dynamic_cast<Option*>(item.get())) {
-        int width = 2; // add two leading space
-        if (opt->get_short_name()) {
-          width += 2; // "-a"
-        }
-
-        if (opt->get_long_name()) {
-          width += static_cast<int>(opt->get_long_name()->size()) + 2; // "--foobar"
-        }
-
-        if (opt->get_short_name() && opt->get_long_name()) {
-          width += 2; // ", "
-        }
-
-        if (opt->requires_argument()) {
-          width += static_cast<int>(dynamic_cast<OptionWithArg&>(*opt).get_argument_name().size()) + 1; // "=ARG"
-        }
-
-        column_width = std::max(column_width, width);
-      }
-    }
-
-    column_width = column_width+2; // add two trailing space
-  }
-
-  if (terminal_width < column_width * 3)
-  {
-    column_width -= (column_width*3 - terminal_width);
-    column_width = std::max(column_width, max_column_width);
-  }
-
-  PrettyPrinter pprinter(terminal_width); // -1 so we have a whitespace on the right side
-
-  pprinter.set_column_width(column_width);
-  if (!skip_print_usage) {
-    print_usage(current_command_item, out);
-  }
-
-  for (auto const& item : group.get_items()) {
-    if (item->get_flags().get_visibility() & visibility_mask) {
-      item->print(pprinter);
-      if (auto const* rest_options_item = dynamic_cast<RestOptionsItem const*>(item.get())) {
-        print_help(rest_options_item->get_options(), nullptr, out, visibility_mask, true);
-      }
-    }
-  }
-}
-
-void
-Parser::print_help(std::ostream& out, uint32_t visibility_mask) const
-{
-  print_help(*this, nullptr, out, visibility_mask, false);
 }
 
 void
