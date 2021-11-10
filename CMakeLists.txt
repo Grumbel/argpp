@@ -35,7 +35,7 @@ add_library(argparser STATIC
   src/prettyprinter.cpp)
 target_include_directories(argparser PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 target_include_directories(argparser PRIVATE
   src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
