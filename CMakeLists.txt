@@ -68,6 +68,7 @@ if(BUILD_TESTS)
     add_executable(${SRC_BASENAME} ${SRC})
     target_link_libraries(${SRC_BASENAME} argparser)
     target_compile_options(${SRC_BASENAME} PRIVATE ${WARNINGS_CXX_FLAGS})
+    target_include_directories(${SRC_BASENAME} PRIVATE src/)
 
     add_test(NAME ${SRC_BASENAME}
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
