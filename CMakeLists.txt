@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.0)
-project(argparser)
+project(argparser VERSION 1.0.0)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/mk/cmake)
 
@@ -33,9 +33,30 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(argparser STATIC
   src/argparser.cpp
   src/prettyprinter.cpp)
-target_include_directories(argparser PUBLIC include/ src/)
+target_include_directories(argparser PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_include_directories(argparser PRIVATE
+  src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
 set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
+
+install(TARGETS argparser
+  EXPORT argparser-targets
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+
+# CMake integration
+configure_file(argparser-config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/argparser-config.cmake" @ONLY)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/argparser-config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/argparser/")
+export(TARGETS argparser
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/argparser-targets.cmake")
+export(PACKAGE argparser)
+install(EXPORT argparser-targets
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/argparser/")
 
 if(BUILD_TESTS)
   enable_testing()
@@ -53,9 +74,5 @@ if(BUILD_TESTS)
       COMMAND "${SRC_BASENAME}")
   endforeach()
 endif()
-
-install(TARGETS argparser
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
 
 # EOF #

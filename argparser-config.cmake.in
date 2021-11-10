@@ -1,0 +1,9 @@
+get_filename_component(ARGPARSER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+include(CMakeFindDependencyMacro)
+
+if(NOT TARGET argparser)
+  include("${ARGPARSER_CMAKE_DIR}/argparser-targets.cmake")
+endif()
+
+# EOF #
