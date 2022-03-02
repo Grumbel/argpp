@@ -18,8 +18,6 @@
             src = nixpkgs.lib.cleanSource ./.;
             nativeBuildInputs = [
               pkgs.cmake
-              pkgs.ninja
-              pkgs.gcc
             ];
            };
         };
