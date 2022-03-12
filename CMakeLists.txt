@@ -44,23 +44,6 @@ target_include_directories(argparser PRIVATE
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
 set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
 
-install(TARGETS argparser
-  EXPORT argparser-targets
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
-
-# CMake integration
-configure_file(argparser-config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/argparser-config.cmake" @ONLY)
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/argparser-config.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/argparser/")
-export(TARGETS argparser
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/argparser-targets.cmake")
-export(PACKAGE argparser)
-install(EXPORT argparser-targets
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/argparser/")
-
 if(BUILD_TESTS)
   enable_testing()
 
@@ -78,5 +61,7 @@ if(BUILD_TESTS)
       COMMAND "${SRC_BASENAME}")
   endforeach()
 endif()
+
+include(ExportAndInstallLibrary)
 
 # EOF #
