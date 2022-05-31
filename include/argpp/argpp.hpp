@@ -22,7 +22,7 @@
 #include <string_view>
 #include <vector>
 
-namespace argparser {
+namespace argpp {
 
 struct Option
 {
@@ -51,7 +51,7 @@ enum {
 
 class OptionGroup
 {
-  friend class ArgParser;
+  friend class Parser;
 public:
   OptionGroup();
 
@@ -75,12 +75,12 @@ private:
   std::vector<Option> m_options;
 };
 
-class ArgParser
+class Parser
 {
   typedef std::vector<ParsedOption> ParsedOptions;
 
 public:
-  ArgParser();
+  Parser();
 
   OptionGroup& add_usage(std::string_view program, std::string_view usage);
   OptionGroup& add_group(std::string_view text = {});
@@ -103,7 +103,7 @@ private:
   std::vector<OptionGroup> m_groups;
 };
 
-} // namespace argparser
+} // namespace argpp
 
 #endif
 

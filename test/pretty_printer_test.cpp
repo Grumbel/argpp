@@ -18,7 +18,7 @@
 
 int main(int argc, char** argv)
 {
-  argparser::PrettyPrinter printer(120);
+  argpp::PrettyPrinter printer(120);
 
   printer.print("            ", " -h, --help",
                 "This program is free software: you can redistribute it and/or modify "

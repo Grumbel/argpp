@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "argparser.hpp"
+#include "argpp.hpp"
 
 #include <array>
 #include <assert.h>
@@ -45,17 +45,17 @@ int get_terminal_width()
 
 } // namespace
 
-namespace argparser {
+namespace argpp {
 
-ArgParser::ArgParser() :
+Parser::Parser() :
   m_program(),
   m_usage(),
   m_groups()
 {
 }
 
-ArgParser::ParsedOptions
-ArgParser::parse_args(int argc, char** argv) const
+Parser::ParsedOptions
+Parser::parse_args(int argc, char** argv) const
 {
   ParsedOptions parsed_options;
 
@@ -171,7 +171,7 @@ ArgParser::parse_args(int argc, char** argv) const
 }
 
 Option const*
-ArgParser::lookup_short_option(char short_option) const
+Parser::lookup_short_option(char short_option) const
 {
   for(auto const& group : m_groups)
   {
@@ -186,7 +186,7 @@ ArgParser::lookup_short_option(char short_option) const
 }
 
 Option const*
-ArgParser::lookup_long_option(std::string_view long_option) const
+Parser::lookup_long_option(std::string_view long_option) const
 {
   for(auto const& group : m_groups)
   {
@@ -201,7 +201,7 @@ ArgParser::lookup_long_option(std::string_view long_option) const
 }
 
 void
-ArgParser::print_help(std::ostream& out) const
+Parser::print_help(std::ostream& out) const
 {
   const int terminal_width = get_terminal_width();
   const int column_min_width = 8;
@@ -302,7 +302,7 @@ ArgParser::print_help(std::ostream& out) const
 }
 
 OptionGroup&
-ArgParser::add_usage(std::string_view program, std::string_view usage)
+Parser::add_usage(std::string_view program, std::string_view usage)
 {
   m_program = program;
   m_usage = usage;
@@ -340,7 +340,7 @@ OptionGroup::add_newline()
 }
 
 OptionGroup&
-ArgParser::add_group(std::string_view text)
+Parser::add_group(std::string_view text)
 {
   m_groups.emplace_back();
   if (!text.empty()) {
@@ -397,6 +397,6 @@ OptionGroup::add_option(int key,
   return *this;
 }
 
-} // namespace argparser
+} // namespace argpp
 
 /* EOF */

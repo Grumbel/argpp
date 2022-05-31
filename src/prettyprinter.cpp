@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-namespace argparser {
+namespace argpp {
 
 PrettyPrinter::PrettyPrinter(int terminal_width, std::ostream& out) :
   m_terminal_width(terminal_width),
@@ -127,6 +127,6 @@ PrettyPrinter::print(std::string_view indent, std::string_view initial, std::str
   m_out << std::endl;
 }
 
-} // namespace argparser
+} // namespace argpp
 
 /* EOF */

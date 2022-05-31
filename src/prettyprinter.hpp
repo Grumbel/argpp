@@ -23,7 +23,7 @@
 #include <ostream>
 #include <iostream>
 
-namespace argparser {
+namespace argpp {
 
 class PrettyPrinter
 {
@@ -38,7 +38,7 @@ private:
   std::ostream& m_out;
 };
 
-} // namespace argparser
+} // namespace argpp
 
 #endif
 

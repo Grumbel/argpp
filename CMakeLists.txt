@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.0)
-project(argparser VERSION 1.0.0)
+project(argpp VERSION 1.0.0)
 
 set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/modules/")
 find_package(tinycmmc CONFIG)
@@ -33,26 +33,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_library(argparser STATIC
-  src/argparser.cpp
+add_library(argpp STATIC
+  src/parser.cpp
   src/prettyprinter.cpp)
-target_include_directories(argparser PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+target_include_directories(argpp PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/argpp/>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_include_directories(argparser PRIVATE
+target_include_directories(argpp PRIVATE
   src/)
-target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
-set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
+target_compile_options(argpp PRIVATE ${WARNINGS_CXX_FLAGS})
+set_target_properties(argpp PROPERTIES PUBLIC_HEADER "include/argpp/argpp.hpp")
 
 if(BUILD_TESTS)
   enable_testing()
 
-  file(GLOB TEST_ARGPARSER_SOURCES test/*_test.cpp)
+  file(GLOB TEST_ARGPP_SOURCES test/*_test.cpp)
 
-  foreach(SRC ${TEST_ARGPARSER_SOURCES})
+  foreach(SRC ${TEST_ARGPP_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
     add_executable(${SRC_BASENAME} ${SRC})
-    target_link_libraries(${SRC_BASENAME} argparser)
+    target_link_libraries(${SRC_BASENAME} argpp)
     target_compile_options(${SRC_BASENAME} PRIVATE ${WARNINGS_CXX_FLAGS})
     target_include_directories(${SRC_BASENAME} PRIVATE src/)
 

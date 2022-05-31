@@ -16,8 +16,8 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in rec {
         packages = flake-utils.lib.flattenTree {
-          argparser = pkgs.stdenv.mkDerivation {
-            pname = "argparser";
+          argpp = pkgs.stdenv.mkDerivation {
+            pname = "argpp";
             version = "1.0.0";
             src = nixpkgs.lib.cleanSource ./.;
             nativeBuildInputs = [
@@ -28,6 +28,6 @@
             ];
            };
         };
-        defaultPackage = packages.argparser;
+        defaultPackage = packages.argpp;
       });
 }

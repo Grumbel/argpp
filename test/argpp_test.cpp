@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <argparser.hpp>
+#include <argpp.hpp>
 #include <iostream>
 
 int main(int argc, char** argv)
 {
   try
   {
-    argparser::ArgParser parser;
+    argpp::ArgParser parser;
 
     parser.add_usage(argv[0], "bar [FILES]... [BLA]..")
       .add_text("Dies und das")
