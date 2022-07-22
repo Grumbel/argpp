@@ -17,26 +17,16 @@
 cmake_minimum_required(VERSION 3.0)
 project(argparser VERSION 2.0.0)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/mk/cmake)
-
-include(GNUInstallDirs)
-include(MaximumWarnings)
-include(ClangTidy)
-
-option(BUILD_TESTS "Build tests" OFF)
-
-find_package(fmt REQUIRED)
+include(mk/cmake/TinyCMMC.cmake)
 
 function(build_dependencies)
-  set(BUILD_TESTS OFF)
-  if(NOT TARGET strut)
-    add_subdirectory(external/strutcpp/ EXCLUDE_FROM_ALL)
-    set_target_properties(strut PROPERTIES CXX_CLANG_TIDY "")
-  endif()
+  find_package(fmt REQUIRED)
+  tinycmmc_find_dependency(strut)
 endfunction()
 build_dependencies()
 
 file(GLOB ARGPARSER_SOURCES src/*.cpp)
+file(GLOB ARGPARSER_HEADERS include/argparser/*.hpp)
 add_library(argparser STATIC
   ${ARGPARSER_SOURCES})
 set_target_properties(argparser PROPERTIES
@@ -46,7 +36,8 @@ set_target_properties(argparser PROPERTIES
 target_include_directories(argparser PUBLIC include/ include/argparser/ src/)
 target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(argparser PUBLIC fmt::fmt strut)
-set_target_properties(argparser PROPERTIES PUBLIC_HEADER "include/argparser.hpp")
+set_target_properties(argparser PROPERTIES PUBLIC_HEADER
+  "${ARGPARSER_HEADERS}")
 
 if(BUILD_TESTS)
   enable_testing()
