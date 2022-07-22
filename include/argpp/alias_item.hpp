@@ -14,18 +14,49 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "rest_options_item.hpp"
+#ifndef HEADER_ARGPARSER_ALIAS_ITEM_HPP
+#define HEADER_ARGPARSER_ALIAS_ITEM_HPP
 
-#include "prettyprinter.hpp"
+#include "item.hpp"
 
 namespace argparser {
 
-void
-RestOptionsItem::print(PrettyPrinter& pprinter)
+class LongOptionAlias : public Item
 {
-  pprinter.print("  " + get_name(), get_help());
-}
+public:
+  LongOptionAlias(std::string name, Option& option, Flags const& flags) :
+    Item(flags),
+    m_name(std::move(name)),
+    m_option(option)
+  {}
+
+  std::string const& get_name() const { return m_name; }
+  Option& get_option() const { return m_option; }
+
+private:
+  std::string m_name;
+  Option& m_option;
+};
+
+class ShortOptionAlias : public Item
+{
+public:
+  ShortOptionAlias(char name, Option& option, Flags const& flags) :
+    Item(flags),
+    m_name(name),
+    m_option(option)
+  {}
+
+  char get_name() const { return m_name; }
+  Option& get_option() const { return m_option; }
+
+private:
+  char m_name;
+  Option& m_option;
+};
 
 } // namespace argparser
+
+#endif
 
 /* EOF */

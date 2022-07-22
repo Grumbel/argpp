@@ -18,7 +18,7 @@
 #include <iostream>
 #include <optional>
 
-#include <argparser/argparser.hpp>
+#include <argpp/argparser.hpp>
 
 int main(int argc, char** argv)
 {

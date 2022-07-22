@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_REST_ITEM_HPP
-#define HEADER_ARGPARSER_REST_ITEM_HPP
+#ifndef HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
+#define HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
 
 #include "callback_with_arg.hpp"
-#include "fwd.hpp"
 #include "item.hpp"
 
 namespace argparser {
 
-class RestItem : public Item
+class PositionalItem : public Item
 {
 public:
-  RestItem(Flags const& flags) :
+  PositionalItem(Flags const& flags) :
     Item(flags)
   {}
+  ~PositionalItem() override = default;
 
   void print(PrettyPrinter& pprinter) override;
 
@@ -40,12 +40,12 @@ public:
 };
 
 template<typename T>
-class TRestItem : public RestItem,
-                  public CallbackWithArg<T>
+class TPositionalItem : public PositionalItem,
+                        public CallbackWithArg<T>
 {
 public:
-  TRestItem(Argument<T> argument, std::string help, Flags const& flags) :
-    RestItem(flags),
+  TPositionalItem(Argument<T> argument, std::string help, Flags const& flags) :
+    PositionalItem(flags),
     CallbackWithArg<T>(argument),
     m_argument(argument),
     m_help(std::move(help))
@@ -68,7 +68,7 @@ private:
   std::string m_help;
 };
 
-} //namespace argparser
+} // namespace argparser
 
 #endif
 

@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,21 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
-#define HEADER_ARGPARSER_POSITIONAL_ITEM_HPP
+#ifndef HEADER_ARGPARSER_REST_OPTIONS_ITEM_HPP
+#define HEADER_ARGPARSER_REST_OPTIONS_ITEM_HPP
 
 #include "callback_with_arg.hpp"
+#include "fwd.hpp"
 #include "item.hpp"
+#include "option_group.hpp"
 
 namespace argparser {
 
-class PositionalItem : public Item
+class RestOptionsItem : public Item
 {
 public:
-  PositionalItem(Flags const& flags) :
+  RestOptionsItem(Flags const& flags) :
     Item(flags)
   {}
-  ~PositionalItem() override = default;
 
   void print(PrettyPrinter& pprinter) override;
 
@@ -37,18 +38,21 @@ public:
   virtual std::string const& get_name() const = 0;
   virtual std::string const& get_help() const = 0;
   virtual void call(std::string_view text) const = 0;
+  virtual OptionGroup& get_options() = 0;
+  virtual OptionGroup const& get_options() const = 0;
 };
 
 template<typename T>
-class TPositionalItem : public PositionalItem,
-                        public CallbackWithArg<T>
+class TRestOptionsItem : public RestOptionsItem,
+                         public CallbackWithArg<T>
 {
 public:
-  TPositionalItem(Argument<T> argument, std::string help, Flags const& flags) :
-    PositionalItem(flags),
+  TRestOptionsItem(Argument<T> argument, std::string help, Flags const& flags) :
+    RestOptionsItem(flags),
     CallbackWithArg<T>(argument),
     m_argument(argument),
-    m_help(std::move(help))
+    m_help(std::move(help)),
+    m_options()
   {}
 
   std::string const& get_name() const override {
@@ -63,12 +67,16 @@ public:
     CallbackWithArg<T>::call(text);
   }
 
+  OptionGroup& get_options() override { return m_options; }
+  OptionGroup const& get_options() const override { return m_options; }
+
 private:
   Argument<T> m_argument;
   std::string m_help;
+  OptionGroup m_options;
 };
 
-} // namespace argparser
+} //namespace argparser
 
 #endif
 

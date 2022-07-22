@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,56 +14,52 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_CALLBACK_HPP
-#define HEADER_ARGPARSER_CALLBACK_HPP
+#ifndef HEADER_ARGPARSER_CALLBACK_WITH_ARG_HPP
+#define HEADER_ARGPARSER_CALLBACK_WITH_ARG_HPP
 
-#include <functional>
+#include "argument.hpp"
 
 namespace argparser {
 
-class Callback
+template<typename T>
+class CallbackWithArg
 {
 public:
-  Callback() :
+  CallbackWithArg(Argument<T> argument) :
+    m_argument(std::move(argument)),
     m_callback()
-  {
-  }
+  {}
 
-  virtual ~Callback() = default;
+  virtual ~CallbackWithArg() = default;
 
-  void call() const {
+  void call(std::string_view text) const {
     if (m_callback) {
-      m_callback();
+      m_callback(m_argument.convert(text));
     }
   }
 
-  void then(std::function<void ()> cb) {
-    m_callback = std::move(cb);
+  template<typename F>
+  void then(F func) {
+    assert(!m_callback);
+    m_callback = func;
   }
 
-  template<typename T>
-  void store(T& place, T const value) {
-    then([&place, value = std::move(value)]{
-      place = value;
+  template<typename P>
+  void store(P& place) {
+    then([&place](T&& value){
+      place = std::move(value);
     });
   }
 
-  template<typename T>
-  void increment(T& place) {
-    then([&place]() {
-      ++place;
-    });
-  }
-
-  template<typename T>
-  void append(T& place, T const value) {
-    then([&place, value = std::move(value)]{
+  void append(T& place) {
+    then([&place](T&& value) {
       place.emplace_back(std::move(value));
     });
   }
 
 private:
-  std::function<void ()> m_callback;
+  Argument<T> m_argument;
+  std::function<void (T)> m_callback;
 };
 
 } // namespace argparser

@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify

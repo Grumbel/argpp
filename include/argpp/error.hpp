@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,34 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_FLAGS_HPP
-#define HEADER_ARGPARSER_FLAGS_HPP
+#ifndef HEADER_ARGPARSER_ERROR_HPP
+#define HEADER_ARGPARSER_ERROR_HPP
 
-#include <stdint.h>
+#include <stdexcept>
 
 namespace argparser {
 
-class Flags
+class Error : public std::exception
 {
 public:
-  Flags() :
-    m_required(false),
-    m_visibility_mask(1),
-    m_mutual_exclusion_mask(0)
+  Error(std::string message) :
+    m_message(std::move(message))
   {}
 
-  Flags& required() { m_required = true; return *this; }
-  Flags& visibility(uint32_t mask) { m_visibility_mask = mask; return *this; }
-  Flags mutual_exclusion(uint32_t mask) { m_mutual_exclusion_mask = mask; return *this; }
-
-  bool is_required() const { return m_required; }
-  uint32_t get_visibility() const { return m_visibility_mask; }
-  uint32_t get_mutual_exclusion() const { return m_mutual_exclusion_mask; }
+  const char* what() const noexcept override {
+    return m_message.c_str();
+  }
 
 private:
-  bool m_required;
-  uint32_t m_visibility_mask;
-  uint32_t m_mutual_exclusion_mask;
+  std::string const m_message;
 };
 
 } // namespace argparser

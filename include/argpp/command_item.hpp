@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,45 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_ALIAS_ITEM_HPP
-#define HEADER_ARGPARSER_ALIAS_ITEM_HPP
+#ifndef HEADER_ARGPARSER_COMMAND_ITEM_HPP
+#define HEADER_ARGPARSER_COMMAND_ITEM_HPP
+
+#include <string>
 
 #include "item.hpp"
+#include "option_group.hpp"
 
 namespace argparser {
 
-class LongOptionAlias : public Item
+class CommandItem : public Item
 {
 public:
-  LongOptionAlias(std::string name, Option& option, Flags const& flags) :
+  CommandItem(std::string name, std::string help, Flags const& flags) :
     Item(flags),
     m_name(std::move(name)),
-    m_option(option)
+    m_help(std::move(help)),
+    m_options()
   {}
 
-  std::string const& get_name() const { return m_name; }
-  Option& get_option() const { return m_option; }
+  void print(PrettyPrinter& pprinter) override;
+
+  std::string get_name() const { return m_name; }
+  std::string get_help() const { return m_help; }
+  OptionGroup& get_options() { return m_options; }
+  OptionGroup const& get_options() const { return m_options; }
 
 private:
   std::string m_name;
-  Option& m_option;
-};
-
-class ShortOptionAlias : public Item
-{
-public:
-  ShortOptionAlias(char name, Option& option, Flags const& flags) :
-    Item(flags),
-    m_name(name),
-    m_option(option)
-  {}
-
-  char get_name() const { return m_name; }
-  Option& get_option() const { return m_option; }
-
-private:
-  char m_name;
-  Option& m_option;
+  std::string m_help;
+  OptionGroup m_options;
 };
 
 } // namespace argparser

@@ -1,4 +1,4 @@
-# Xbox360 USB Gamepad Userspace Driver
+# argpp
 # Copyright (C) 2015 Ingo Ruhnke <grumbel@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.0)
-project(argparser VERSION 2.0.0)
+project(argpp VERSION 2.0.0)
 
 include(mk/cmake/TinyCMMC.cmake)
 
@@ -25,32 +25,32 @@ function(build_dependencies)
 endfunction()
 build_dependencies()
 
-file(GLOB ARGPARSER_SOURCES src/*.cpp)
-file(GLOB ARGPARSER_HEADERS include/argparser/*.hpp)
-add_library(argparser STATIC
-  ${ARGPARSER_SOURCES})
-set_target_properties(argparser PROPERTIES
+file(GLOB ARGPP_SOURCES src/*.cpp)
+file(GLOB ARGPP_HEADERS include/argpp/*.hpp)
+add_library(argpp STATIC
+  ${ARGPP_SOURCES})
+set_target_properties(argpp PROPERTIES
   CXX_STANDARD 20
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF)
-target_include_directories(argparser PUBLIC include/ include/argparser/ src/)
-target_compile_options(argparser PRIVATE ${WARNINGS_CXX_FLAGS})
-target_link_libraries(argparser PUBLIC fmt::fmt strut)
-set_target_properties(argparser PROPERTIES PUBLIC_HEADER
-  "${ARGPARSER_HEADERS}")
+target_include_directories(argpp PUBLIC include/ include/argpp/ src/)
+target_compile_options(argpp PRIVATE ${WARNINGS_CXX_FLAGS})
+target_link_libraries(argpp PUBLIC fmt::fmt strut)
+set_target_properties(argpp PROPERTIES PUBLIC_HEADER
+  "${ARGPP_HEADERS}")
 
 if(BUILD_TESTS)
   enable_testing()
 
-  file(GLOB EXAMPLE_ARGPARSER_SOURCES test/*_example.cpp)
-  foreach(SRC ${EXAMPLE_ARGPARSER_SOURCES})
+  file(GLOB EXAMPLE_ARGPP_SOURCES test/*_example[0-9].cpp)
+  foreach(SRC ${EXAMPLE_ARGPP_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
     add_executable(${SRC_BASENAME} ${SRC})
     set_target_properties(${SRC_BASENAME} PROPERTIES
       CXX_STANDARD 20
       CXX_STANDARD_REQUIRED ON
       CXX_EXTENSIONS OFF)
-    target_link_libraries(${SRC_BASENAME} argparser)
+    target_link_libraries(${SRC_BASENAME} argpp)
     target_compile_options(${SRC_BASENAME} PRIVATE ${WARNINGS_CXX_FLAGS})
 
     add_test(NAME ${SRC_BASENAME}
@@ -60,24 +60,24 @@ if(BUILD_TESTS)
 
   find_package(GTest REQUIRED)
 
-  file(GLOB TEST_ARGPARSER_SOURCES test/*_test.cpp)
-  add_executable(test_argparser ${TEST_ARGPARSER_SOURCES})
-  set_target_properties(test_argparser PROPERTIES
+  file(GLOB TEST_ARGPP_SOURCES test/*_test.cpp)
+  add_executable(test_argpp ${TEST_ARGPP_SOURCES})
+  set_target_properties(test_argpp PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF)
-  target_compile_options(test_argparser PRIVATE ${WARNINGS_CXX_FLAGS})
-  target_link_libraries(test_argparser
-    argparser
+  target_compile_options(test_argpp PRIVATE ${WARNINGS_CXX_FLAGS})
+  target_link_libraries(test_argpp
+    argpp
     GTest::GTest
     GTest::Main)
 
-    add_test(NAME test_argparser
+    add_test(NAME test_argpp
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-      COMMAND test_argparser)
+      COMMAND test_argpp)
 endif()
 
-install(TARGETS argparser
+install(TARGETS argpp
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
 

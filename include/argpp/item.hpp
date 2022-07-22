@@ -1,4 +1,4 @@
-// ArgParse - A Command Line Argument Parser for C++
+// argpp - A Command Line Argument Parser for C++
 // Copyright (C) 2008-2020 Ingo Ruhnke <grumbel@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,31 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef HEADER_ARGPARSER_PRINTER_HPP
-#define HEADER_ARGPARSER_PRINTER_HPP
+#ifndef HEADER_ARGPARSER_ITEM_HPP
+#define HEADER_ARGPARSER_ITEM_HPP
 
-#include <iostream>
-#include <stdint.h>
+#include <assert.h>
+#include <functional>
+#include <string_view>
+#include <variant>
+#include <vector>
 
+#include "flags.hpp"
 #include "fwd.hpp"
 
 namespace argparser {
 
-class Printer
+class Item
 {
 public:
-  Printer(OptionGroup const& options);
+  Item(Flags const& flags) : m_flags(flags)
+  {}
+  virtual ~Item() = default;
 
-  void print_usage(std::ostream& out = std::cout) const;
-  void print_help(std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
-  void print_help(CommandItem const& command_item, std::ostream& out = std::cout, uint32_t visibility_mask = ~0) const;
+  virtual void print(PrettyPrinter& printer) = 0;
+  virtual std::string text() const { return {}; }
 
-private:
-  void print_help(OptionGroup const& group, CommandItem const* current_command_item, std::ostream& out, uint32_t visibility_mask, bool skip_print_usage) const;
-  void print_usage(CommandItem const* current_command_item, std::ostream& out) const;
+  Flags const& get_flags() const { return m_flags; }
 
-private:
-  OptionGroup const& m_options;
+protected:
+  Flags m_flags; // NOLINT
 };
 
 } // namespace argparser
