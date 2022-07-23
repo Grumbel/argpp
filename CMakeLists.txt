@@ -33,7 +33,12 @@ set_target_properties(argpp PROPERTIES
   CXX_STANDARD 20
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF)
-target_include_directories(argpp PUBLIC include/ include/argpp/ src/)
+# target_include_directories(argpp PRIVATE include/argpp/ src/)
+target_include_directories(argpp PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/argpp>
+  $<INSTALL_INTERFACE:include>)
 target_compile_options(argpp PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(argpp PUBLIC fmt::fmt strut)
 set_target_properties(argpp PROPERTIES PUBLIC_HEADER
@@ -77,8 +82,6 @@ if(BUILD_TESTS)
       COMMAND test_argpp)
 endif()
 
-install(TARGETS argpp
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+tinycmmc_export_and_install_library(argpp)
 
 # EOF #
