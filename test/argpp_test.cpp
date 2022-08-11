@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 {
   try
   {
-    argpp::ArgParser parser;
+    argpp::Parser parser;
 
     parser.add_usage(argv[0], "bar [FILES]... [BLA]..")
       .add_text("Dies und das")
