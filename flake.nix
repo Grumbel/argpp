@@ -16,31 +16,14 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, tinycmmc, strutcpp }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in {
+    tinycmmc.lib.eachSystemWithPkgs (pkgs:
+      {
         packages = flake-utils.lib.flattenTree rec {
-          argpp = pkgs.stdenv.mkDerivation {
-            pname = "argpp";
-            version = "2.0.0-beta";
-            src = nixpkgs.lib.cleanSource ./.;
-            cmakeFlags = [
-              "-DBUILD_TESTS=ON"
-              "-DWARNINGS=ON"
-              "-DWERROR=ON"
-            ];
-            nativeBuildInputs = [
-              pkgs.cmake
-            ];
-            buildInputs = [
-              pkgs.fmt
-              pkgs.gtest
-              strutcpp.packages.${system}.default
-              tinycmmc.packages.${system}.default
-            ];
-          };
           default = argpp;
+          argpp = pkgs.callPackage ./argpp.nix {
+            strutcpp = strutcpp.packages.${pkgs.buildPlatform.system}.default;
+            tinycmmc = tinycmmc.packages.${pkgs.buildPlatform.system}.default;
+          };
         };
       }
     );
