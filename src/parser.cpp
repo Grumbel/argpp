@@ -21,7 +21,10 @@
 #include <stdio.h>
 #include <ostream>
 #include <stdexcept>
-#include <sys/ioctl.h>
+
+#ifndef _WIN32
+#  include <sys/ioctl.h>
+#endif
 
 #include "prettyprinter.hpp"
 
@@ -32,6 +35,9 @@ constexpr int default_terminal_width = 80;
 
 int get_terminal_width()
 {
+#ifdef _WIN32
+  return 80;
+#else
   struct winsize w;
   if (ioctl(0, TIOCGWINSZ, &w) < 0)
   {
@@ -41,6 +47,7 @@ int get_terminal_width()
   {
     return w.ws_col;
   }
+#endif
 }
 
 } // namespace
