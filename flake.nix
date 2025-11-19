@@ -20,8 +20,8 @@
         packages = rec {
           default = argpp;
           argpp = pkgs.callPackage ./argpp.nix {
-            strutcpp = strutcpp.packages.${pkgs.buildPlatform.system}.default;
-            tinycmmc = tinycmmc.packages.${pkgs.buildPlatform.system}.default;
+            strutcpp = strutcpp.packages.${pkgs.stdenv.buildPlatform.system}.default;
+            tinycmmc = tinycmmc.packages.${pkgs.stdenv.buildPlatform.system}.default;
           };
         };
       }
