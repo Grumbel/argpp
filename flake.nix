@@ -16,7 +16,7 @@
         packages = rec {
           default = argpp;
           argpp = pkgs.callPackage ./argpp.nix {
-            tinycmmc = tinycmmc.packages.${pkgs.system}.default;
+            tinycmmc = tinycmmc.packages.${pkgs.stdenv.hostPlatform.system}.default;
           };
         };
       }
